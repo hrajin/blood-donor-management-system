@@ -7,8 +7,9 @@ import { addDays, bangladeshDate } from '../shared/bangladesh-time.ts';
 import type { BloodRequest, SuggestionResult } from '../shared/blood-request.ts';
 import type { DashboardStats } from '../shared/dashboard.ts';
 import type { ApiErrorBody, Donor, DonorInput, DonorPage } from '../shared/donor.ts';
-import { districts, districtsOf, upazilasOf } from '../shared/locations.ts';
+import { builtInAreasOf, districts, districtsOf } from '../shared/locations.ts';
 import { createApp } from './app.ts';
+import { AreaModel } from './area-model.ts';
 import { BloodRequestModel } from './blood-request-model.ts';
 import { loadConfig } from './config.ts';
 import { DonorModel } from './donor-model.ts';
@@ -29,6 +30,7 @@ before(async () => {
   await mongoose.connection.dropDatabase();
   await DonorModel.init();
   await BloodRequestModel.init();
+  await AreaModel.init();
   server = createApp(config).listen(0);
   baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api`;
 });
@@ -65,9 +67,9 @@ function send(cookie: string, method: string, path: string, body?: unknown): Pro
 
 function locationIn(districtIndex: number) {
   const district = districts[districtIndex];
-  const upazila = district && upazilasOf(district.id)[0];
-  assert.ok(district && upazila, 'location data is loaded');
-  return { divisionId: district.divisionId, districtId: district.id, upazilaId: upazila.id };
+  const area = district && builtInAreasOf(district.id)[0];
+  assert.ok(district && area, 'location data is loaded');
+  return { divisionId: district.divisionId, districtId: district.id, areaId: area.id };
 }
 
 function donor(phone: string, districtIndex: number): DonorInput {
@@ -130,14 +132,14 @@ test('adds donors, filters them by zone and changes availability', async () => {
   assert.equal(available.total, 0);
 });
 
-test('rejects an upazila that is not in the chosen district', async () => {
+test('rejects an area that is not in the chosen district', async () => {
   const cookie = await adminCookie();
-  const mismatched = { ...donor('01933333333', 0), upazilaId: locationIn(1).upazilaId };
+  const mismatched = { ...donor('01933333333', 0), areaId: locationIn(1).areaId };
 
   const response = await send(cookie, 'POST', '/donors', mismatched);
   assert.equal(response.status, 400);
   const body = (await response.json()) as { fields: Record<string, string> };
-  assert.ok(body.fields.upazilaId);
+  assert.ok(body.fields.areaId);
 });
 
 test('rejects a second donor with the same phone number or NID', async () => {
@@ -216,17 +218,17 @@ test('sorts donors by availability and by last donation', async () => {
 test('suggests eligible donors nearest first, and a recorded donation fulfils the request', async () => {
   const cookie = await adminCookie();
   const district = districts.find(
-    (d) => upazilasOf(d.id).length > 1 && districtsOf(d.divisionId).length > 1,
+    (d) => builtInAreasOf(d.id).length > 1 && districtsOf(d.divisionId).length > 1,
   );
   const neighbour = district && districtsOf(district.divisionId).find((d) => d.id !== district.id);
-  const [upazila, otherUpazila] = district ? upazilasOf(district.id) : [];
-  const neighbourUpazila = neighbour && upazilasOf(neighbour.id)[0];
-  assert.ok(district && neighbour && upazila && otherUpazila && neighbourUpazila);
+  const [area, otherArea] = district ? builtInAreasOf(district.id) : [];
+  const neighbourArea = neighbour && builtInAreasOf(neighbour.id)[0];
+  assert.ok(district && neighbour && area && otherArea && neighbourArea);
   const today = bangladeshDate(new Date());
-  const at = (upazilaId: string, districtId: string) => ({
+  const at = (areaId: string, districtId: string) => ({
     divisionId: district.divisionId,
     districtId,
-    upazilaId,
+    areaId,
   });
 
   async function addDonor(phone: string, changes: Partial<DonorInput>): Promise<Donor> {
@@ -238,19 +240,19 @@ test('suggests eligible donors nearest first, and a recorded donation fulfils th
     assert.equal(response.status, 201);
     return (await response.json()) as Donor;
   }
-  const sameUpazila = await addDonor('01910000001', at(upazila.id, district.id));
+  const sameArea = await addDonor('01910000001', at(area.id, district.id));
   const sameDivision = await addDonor('01910000002', {
-    ...at(neighbourUpazila.id, neighbour.id),
+    ...at(neighbourArea.id, neighbour.id),
     donationCount: 3,
     lastDonatedAt: addDays(today, -200),
   });
   await addDonor('01910000003', {
-    ...at(otherUpazila.id, district.id),
+    ...at(otherArea.id, district.id),
     donationCount: 1,
     lastDonatedAt: addDays(today, -30),
   });
-  await addDonor('01910000004', { ...at(upazila.id, district.id), available: false });
-  await addDonor('01910000005', { ...at(upazila.id, district.id), bloodGroup: 'A+' });
+  await addDonor('01910000004', { ...at(area.id, district.id), available: false });
+  await addDonor('01910000005', { ...at(area.id, district.id), bloodGroup: 'A+' });
 
   const created = await send(cookie, 'POST', '/requests', {
     patientName: 'Test Patient',
@@ -262,7 +264,7 @@ test('suggests eligible donors nearest first, and a recorded donation fulfils th
     hospitalName: 'Test Hospital',
     hospitalAddress: null,
     ward: null,
-    ...at(upazila.id, district.id),
+    ...at(area.id, district.id),
     reason: null,
     contactName: 'Test Contact',
     contactPhone: '01399999999',
@@ -279,7 +281,7 @@ test('suggests eligible donors nearest first, and a recorded donation fulfils th
   assert.deepEqual(
     result.suggestions.map((s) => [s.donor.id, s.tier]),
     [
-      [sameUpazila.id, 1],
+      [sameArea.id, 1],
       [sameDivision.id, 3],
     ],
   );
@@ -289,13 +291,11 @@ test('suggests eligible donors nearest first, and a recorded donation fulfils th
   const donation = await send(
     cookie,
     'POST',
-    `/requests/${request.id}/responses/${sameUpazila.id}/donation`,
+    `/requests/${request.id}/responses/${sameArea.id}/donation`,
   );
   assert.equal(donation.status, 200);
   assert.equal(((await donation.json()) as BloodRequest).status, 'fulfilled');
-  const donorAfter = (await (
-    await send(cookie, 'GET', `/donors/${sameUpazila.id}`)
-  ).json()) as Donor;
+  const donorAfter = (await (await send(cookie, 'GET', `/donors/${sameArea.id}`)).json()) as Donor;
   assert.equal(donorAfter.donationCount, 1);
   assert.equal(donorAfter.lastDonatedAt, today);
 
@@ -303,4 +303,103 @@ test('suggests eligible donors nearest first, and a recorded donation fulfils th
     status: 'agreed',
   });
   assert.equal(late.status, 409);
+});
+
+test('admins can add an area once, and donors there are suggested first', async () => {
+  const cookie = await adminCookie();
+  const district = districts.find((d) => builtInAreasOf(d.id).length > 0);
+  const builtIn = district && builtInAreasOf(district.id)[0];
+  assert.ok(district && builtIn);
+
+  const added = await send(cookie, 'POST', '/areas', {
+    districtId: district.id,
+    name: 'Test Block C',
+  });
+  assert.equal(added.status, 201);
+  const area = (await added.json()) as { id: string; name: string };
+  const again = await send(cookie, 'POST', '/areas', {
+    districtId: district.id,
+    name: '  test   block c ',
+  });
+  assert.equal(again.status, 200);
+  assert.equal(((await again.json()) as { id: string }).id, area.id);
+  const sameAsBuiltIn = await send(cookie, 'POST', '/areas', {
+    districtId: district.id,
+    name: builtIn.name.toUpperCase(),
+  });
+  assert.equal(((await sameAsBuiltIn.json()) as { id: string }).id, builtIn.id);
+
+  const place = { divisionId: district.divisionId, districtId: district.id };
+  const add = async (phone: string, areaId: string) => {
+    const response = await send(cookie, 'POST', '/donors', {
+      ...donor(phone, 0),
+      ...place,
+      areaId,
+      bloodGroup: 'AB+',
+    });
+    assert.equal(response.status, 201);
+    return (await response.json()) as Donor;
+  };
+  const inArea = await add('01920000001', area.id);
+  assert.equal(inArea.areaName, 'Test Block C');
+  const elsewhere = await add('01920000002', builtIn.id);
+
+  const created = await send(cookie, 'POST', '/requests', {
+    patientName: 'Area Patient',
+    bloodGroup: 'AB+',
+    component: 'whole-blood',
+    unitsRequired: 1,
+    urgency: 'normal',
+    requiredOn: bangladeshDate(new Date()),
+    hospitalName: 'Area Hospital',
+    hospitalAddress: null,
+    ward: null,
+    ...place,
+    areaId: area.id,
+    reason: null,
+    contactName: 'Area Contact',
+    contactPhone: '01399999998',
+    relationship: 'friend',
+    notes: null,
+  });
+  assert.equal(created.status, 201);
+  const request = (await created.json()) as BloodRequest;
+  const result = (await (
+    await send(cookie, 'GET', `/requests/${request.id}/suggestions`)
+  ).json()) as SuggestionResult;
+  const tiers = new Map(result.suggestions.map((s) => [s.donor.id, s.tier]));
+  assert.equal(tiers.get(inArea.id), 1);
+  assert.equal(tiers.get(elsewhere.id), 2);
+});
+
+test('a donor needs only a name, a mobile number and a blood group', async () => {
+  const cookie = await adminCookie();
+  const minimal = (phone: string) => ({
+    name: `Quick ${phone}`,
+    phone,
+    bloodGroup: 'O-',
+    email: null,
+    dateOfBirth: null,
+    gender: null,
+    nidNumber: null,
+    divisionId: null,
+    districtId: null,
+    areaId: null,
+    presentAddress: null,
+    permanentAddress: null,
+    available: true,
+    donationCount: 0,
+    lastDonatedAt: null,
+  });
+  // Two donors without an NID: the NID is unique only when it is given.
+  assert.equal((await send(cookie, 'POST', '/donors', minimal('01930000001'))).status, 201);
+  const second = await send(cookie, 'POST', '/donors', minimal('01930000002'));
+  assert.equal(second.status, 201);
+  assert.equal(((await second.json()) as Donor).areaName, null);
+
+  const missingBloodGroup = await send(cookie, 'POST', '/donors', {
+    ...minimal('01930000003'),
+    bloodGroup: null,
+  });
+  assert.equal(missingBloodGroup.status, 400);
 });

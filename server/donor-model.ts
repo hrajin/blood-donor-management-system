@@ -6,17 +6,20 @@ const donorSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     phone: { type: String, required: true, unique: true },
+    bloodGroup: { type: String, required: true, enum: bloodGroups },
+    // Everything below the blood group is optional; null means "not recorded".
     email: { type: String, default: null },
     // Calendar dates are stored as `YYYY-MM-DD` strings, the same shape the API uses.
-    dateOfBirth: { type: String, required: true },
-    gender: { type: String, required: true, enum: genders },
-    nidNumber: { type: String, required: true, unique: true },
-    bloodGroup: { type: String, required: true, enum: bloodGroups },
-    divisionId: { type: String, required: true },
-    districtId: { type: String, required: true },
-    upazilaId: { type: String, required: true },
-    presentAddress: { type: String, required: true },
-    permanentAddress: { type: String, required: true },
+    dateOfBirth: { type: String, default: null },
+    gender: { type: String, enum: [...genders, null], default: null },
+    nidNumber: { type: String, default: null },
+    divisionId: { type: String, default: null },
+    districtId: { type: String, default: null },
+    areaId: { type: String, default: null },
+    // Saved with the ID, as areas are never renamed; added areas would otherwise need a lookup.
+    areaName: { type: String, default: null },
+    presentAddress: { type: String, default: null },
+    permanentAddress: { type: String, default: null },
     available: { type: Boolean, required: true },
     donationCount: { type: Number, required: true, min: 0 },
     // Null until the first donation.
@@ -25,8 +28,13 @@ const donorSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-donorSchema.index({ divisionId: 1, districtId: 1, upazilaId: 1, bloodGroup: 1, available: 1 });
+donorSchema.index({ divisionId: 1, districtId: 1, areaId: 1, bloodGroup: 1, available: 1 });
 donorSchema.index({ name: 1, _id: 1 });
+// NID numbers are unique when given; the partial filter lets many donors have none.
+donorSchema.index(
+  { nidNumber: 1 },
+  { unique: true, partialFilterExpression: { nidNumber: { $type: 'string' } } },
+);
 
 export const DonorModel = mongoose.model('Donor', donorSchema);
 
@@ -40,15 +48,16 @@ export function toDonor(document: DonorDocument): Donor {
     name: document.name,
     phone: document.phone,
     email: document.email ?? null,
-    dateOfBirth: document.dateOfBirth,
-    gender: document.gender,
-    nidNumber: document.nidNumber,
+    dateOfBirth: document.dateOfBirth ?? null,
+    gender: document.gender ?? null,
+    nidNumber: document.nidNumber ?? null,
     bloodGroup: document.bloodGroup,
-    divisionId: document.divisionId,
-    districtId: document.districtId,
-    upazilaId: document.upazilaId,
-    presentAddress: document.presentAddress,
-    permanentAddress: document.permanentAddress,
+    divisionId: document.divisionId ?? null,
+    districtId: document.districtId ?? null,
+    areaId: document.areaId ?? null,
+    areaName: document.areaName ?? null,
+    presentAddress: document.presentAddress ?? null,
+    permanentAddress: document.permanentAddress ?? null,
     available: document.available,
     donationCount: document.donationCount,
     lastDonatedAt: document.lastDonatedAt ?? null,
@@ -65,7 +74,8 @@ type ContactFields = Pick<
   | 'bloodGroup'
   | 'divisionId'
   | 'districtId'
-  | 'upazilaId'
+  | 'areaId'
+  | 'areaName'
   | 'available'
   | 'donationCount'
   | 'lastDonatedAt'
@@ -77,7 +87,8 @@ export const contactProjection = {
   bloodGroup: 1,
   divisionId: 1,
   districtId: 1,
-  upazilaId: 1,
+  areaId: 1,
+  areaName: 1,
   available: 1,
   donationCount: 1,
   lastDonatedAt: 1,
@@ -89,9 +100,10 @@ export function toDonorContact(document: ContactFields): DonorContact {
     name: document.name,
     phone: document.phone,
     bloodGroup: document.bloodGroup,
-    divisionId: document.divisionId,
-    districtId: document.districtId,
-    upazilaId: document.upazilaId,
+    divisionId: document.divisionId ?? null,
+    districtId: document.districtId ?? null,
+    areaId: document.areaId ?? null,
+    areaName: document.areaName ?? null,
     available: document.available,
     donationCount: document.donationCount,
     lastDonatedAt: document.lastDonatedAt ?? null,

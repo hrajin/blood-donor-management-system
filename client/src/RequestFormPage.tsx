@@ -20,6 +20,7 @@ import { ApiError, createRequest } from './api.ts';
 import { Breadcrumbs } from './Breadcrumbs.tsx';
 import { ChoiceGroup, Field, FormSection } from './form-parts.tsx';
 import { LocationSelect } from './LocationSelect.tsx';
+import { optionsOf, SearchSelect } from './SearchSelect.tsx';
 import { useToast } from './Toaster.tsx';
 
 type FormValues = {
@@ -34,7 +35,7 @@ type FormValues = {
   ward: string;
   divisionId: string;
   districtId: string;
-  upazilaId: string;
+  areaId: string;
   reason: string;
   contactName: string;
   contactPhone: string;
@@ -55,7 +56,7 @@ function emptyForm(today: string): FormValues {
     ward: '',
     divisionId: '',
     districtId: '',
-    upazilaId: '',
+    areaId: '',
     reason: '',
     contactName: '',
     contactPhone: '',
@@ -163,18 +164,15 @@ export function RequestFormPage() {
           <div className="form-row">
             <Field label="Component" error={errors.component}>
               {(id) => (
-                <select
-                  id={id}
+                <SearchSelect
+                  inputId={id}
+                  searchable={false}
+                  options={optionsOf(components, componentLabels)}
                   value={values.component}
-                  aria-invalid={invalid('component')}
-                  onChange={(event) => change({ component: event.target.value })}
-                >
-                  {components.map((component) => (
-                    <option key={component} value={component}>
-                      {componentLabels[component]}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="Choose…"
+                  invalid={Boolean(errors.component)}
+                  onChange={(component) => change({ component })}
+                />
               )}
             </Field>
             <Field label="Units needed" error={errors.unitsRequired}>
@@ -220,18 +218,15 @@ export function RequestFormPage() {
           </div>
           <Field label="Reason (optional)" error={errors.reason}>
             {(id) => (
-              <select
-                id={id}
+              <SearchSelect
+                inputId={id}
+                searchable={false}
+                options={optionsOf(requestReasons, requestReasonLabels)}
                 value={values.reason}
-                onChange={(event) => change({ reason: event.target.value })}
-              >
-                <option value="">Not given</option>
-                {requestReasons.map((reason) => (
-                  <option key={reason} value={reason}>
-                    {requestReasonLabels[reason]}
-                  </option>
-                ))}
-              </select>
+                placeholder="Not given"
+                emptyLabel="Not given"
+                onChange={(reason) => change({ reason })}
+              />
             )}
           </Field>
         </FormSection>
@@ -239,7 +234,7 @@ export function RequestFormPage() {
         <FormSection
           number={2}
           title="Hospital"
-          hint="Its upazila is where the search for donors starts."
+          hint="Its area / city is where the search for donors starts."
         >
           <Field label="Hospital name" error={errors.hospitalName}>
             {(id) => (
@@ -253,10 +248,9 @@ export function RequestFormPage() {
             )}
           </Field>
           <LocationSelect
-            emptyLabel="Choose…"
-            required
+            mode="required"
             value={values}
-            error={errors.upazilaId}
+            error={errors.areaId ?? errors.districtId}
             onChange={(location) => change(location)}
           />
           <div className="form-row">
@@ -315,19 +309,15 @@ export function RequestFormPage() {
           </div>
           <Field label="Relationship to the patient" error={errors.relationship}>
             {(id) => (
-              <select
-                id={id}
+              <SearchSelect
+                inputId={id}
+                searchable={false}
+                options={optionsOf(relationships, relationshipLabels)}
                 value={values.relationship}
-                aria-invalid={invalid('relationship')}
-                onChange={(event) => change({ relationship: event.target.value })}
-              >
-                <option value="">Choose…</option>
-                {relationships.map((relationship) => (
-                  <option key={relationship} value={relationship}>
-                    {relationshipLabels[relationship]}
-                  </option>
-                ))}
-              </select>
+                placeholder="Choose…"
+                invalid={Boolean(errors.relationship)}
+                onChange={(relationship) => change({ relationship })}
+              />
             )}
           </Field>
           <Field label="Notes (optional)" error={errors.notes}>

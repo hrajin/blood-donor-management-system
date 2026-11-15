@@ -19,7 +19,7 @@ import {
   type Tier,
 } from '../../shared/blood-request.ts';
 import { donationIntervalDays, maxMatchingAge, minDonorAge } from '../../shared/eligibility.ts';
-import { zoneName } from '../../shared/locations.ts';
+import { placeName, zoneName } from '../../shared/locations.ts';
 import {
   ApiError,
   cancelRequest,
@@ -30,6 +30,8 @@ import {
 } from './api.ts';
 import { Breadcrumbs } from './Breadcrumbs.tsx';
 import { formatDay, formatInstant, relativeDay } from './calendar-format.ts';
+import { Field } from './form-parts.tsx';
+import { optionsOf, SearchSelect } from './SearchSelect.tsx';
 import { useToast } from './Toaster.tsx';
 import { UnitsProgress } from './UnitsProgress.tsx';
 
@@ -199,7 +201,7 @@ function RequestHeader({
           </div>
           <p className="muted">
             {request.code} · {componentLabels[request.component]} · {request.hospitalName},{' '}
-            {zoneName(request.upazilaId)}, {zoneName(request.districtId)}
+            {request.areaName}, {zoneName(request.districtId)}
           </p>
         </div>
         <div className="request-when">
@@ -292,27 +294,25 @@ function CancelForm({
 
   return (
     <form className="cancel-form" onSubmit={submit} noValidate>
-      <label>
-        Why is this request being cancelled?
-        <select
-          value={reason}
-          aria-invalid={error ? true : undefined}
-          onChange={(event) => setReason(event.target.value)}
-        >
-          <option value="">Choose…</option>
-          {cancelReasons.map((value) => (
-            <option key={value} value={value}>
-              {cancelReasonLabels[value]}
-            </option>
-          ))}
-        </select>
-      </label>
+      <Field label="Why is this request being cancelled?">
+        {(id) => (
+          <SearchSelect
+            inputId={id}
+            searchable={false}
+            options={optionsOf(cancelReasons, cancelReasonLabels)}
+            value={reason}
+            placeholder="Choose…"
+            invalid={Boolean(error)}
+            onChange={setReason}
+          />
+        )}
+      </Field>
       <label>
         Note (optional)
         <input value={note} maxLength={200} onChange={(event) => setNote(event.target.value)} />
       </label>
-      {error && <span className="field-error">{error}</span>}
-      <div className="form-buttons">
+      {error && <span className="field-error span-all">{error}</span>}
+      <div className="form-buttons span-all">
         <button type="button" className="secondary" onClick={onClose}>
           Keep request
         </button>
@@ -410,10 +410,11 @@ function ContactedDonors({
 }
 
 const tierTitles: Record<Tier, (request: BloodRequest) => string> = {
-  1: (request) => `Same upazila · ${zoneName(request.upazilaId)}`,
+  1: (request) => `Same area · ${request.areaName}`,
   2: (request) => `Same district · ${zoneName(request.districtId)}`,
   3: (request) => `Same division · ${zoneName(request.divisionId)}`,
   4: () => 'Other divisions',
+  5: () => 'Location not recorded',
 };
 
 type SuggestionState =
@@ -505,14 +506,13 @@ function SuggestionBody({
       );
     case 'loaded': {
       const { suggestions, total, excluded, checkedOn } = state.result;
-      const tiers = ([1, 2, 3, 4] as const)
+      const tiers = ([1, 2, 3, 4, 5] as const)
         .map((tier) => ({ tier, donors: suggestions.filter((s) => s.tier === tier) }))
         .filter((group) => group.donors.length > 0);
       return (
         <>
           <p className="excluded muted">
-            Eligibility checked for {formatDay(checkedOn)}.{' '}
-            <ExcludedSummary excluded={excluded} />
+            Eligibility checked for {formatDay(checkedOn)}. <ExcludedSummary excluded={excluded} />
           </p>
           {total === 0 && (
             <p className="panel-empty muted">
@@ -588,7 +588,8 @@ function SuggestionRow({
   );
 }
 
-function DonorLine({ donor, age }: { donor: DonorContact; age?: number }) {
+/** `age` is null when the date of birth is not recorded, and left out where it does not matter. */
+function DonorLine({ donor, age }: { donor: DonorContact; age?: number | null }) {
   return (
     <div className="donor-line">
       <Link to={`/donors/${donor.id}`} className="donor-name">
@@ -596,8 +597,8 @@ function DonorLine({ donor, age }: { donor: DonorContact; age?: number }) {
       </Link>
       <span className="muted">
         {donor.phone}
-        {age !== undefined && ` · ${age} yrs`} · {zoneName(donor.upazilaId)},{' '}
-        {zoneName(donor.districtId)} ·{' '}
+        {age !== undefined && ` · ${age === null ? 'age not recorded' : `${age} yrs`}`} ·{' '}
+        {placeName(donor)} ·{' '}
         {donor.lastDonatedAt
           ? `last gave ${formatDay(donor.lastDonatedAt)} (${donor.donationCount}×)`
           : 'never donated'}
@@ -664,8 +665,7 @@ function RequestFacts({ request }: { request: BloodRequest }) {
         <dl>
           <Fact label="Hospital">{request.hospitalName}</Fact>
           <Fact label="Area">
-            {zoneName(request.upazilaId)}, {zoneName(request.districtId)},{' '}
-            {zoneName(request.divisionId)}
+            {request.areaName}, {zoneName(request.districtId)}, {zoneName(request.divisionId)}
           </Fact>
           {request.hospitalAddress && <Fact label="Address">{request.hospitalAddress}</Fact>}
           {request.ward && <Fact label="Ward / bed">{request.ward}</Fact>}

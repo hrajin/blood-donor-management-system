@@ -14,10 +14,11 @@ type SuggestionOptions = {
 };
 
 function tierOf(donor: DonorContact, request: BloodRequestDocument): Tier {
-  if (donor.upazilaId === request.upazilaId) return 1;
+  if (donor.areaId === request.areaId) return 1;
   if (donor.districtId === request.districtId) return 2;
   if (donor.divisionId === request.divisionId) return 3;
-  return 4;
+  // A donor without a recorded division could live anywhere, so they come after everyone else.
+  return donor.divisionId === null ? 5 : 4;
 }
 
 /** Donor IDs that agreed to give for another open request and have not donated yet (SRS C8). */
@@ -53,7 +54,8 @@ export async function suggestDonors(
   const candidates = await DonorModel.find(
     {
       bloodGroup: request.bloodGroup,
-      ...(wider ? {} : { divisionId: request.divisionId }),
+      // Donors without a recorded location are always included: they may live nearby.
+      ...(wider ? {} : { divisionId: { $in: [request.divisionId, null] } }),
     },
     { ...contactProjection, dateOfBirth: 1 },
   ).lean();
@@ -76,7 +78,12 @@ export async function suggestDonors(
     // Checked in this order, so each donor is counted under the first reason that applies.
     if (candidate.phone === request.contactPhone) excluded.isContactPerson++;
     else if (!candidate.available) excluded.unavailable++;
-    else if (candidate.dateOfBirth > youngestBirthDate || candidate.dateOfBirth <= oldestBirthDate)
+    // Without a date of birth the age is unknown; they stay in, shown as "age not recorded",
+    // because the hospital screens every donor anyway.
+    else if (
+      candidate.dateOfBirth &&
+      (candidate.dateOfBirth > youngestBirthDate || candidate.dateOfBirth <= oldestBirthDate)
+    )
       excluded.outsideAgeRange++;
     else if (eligibleFrom && eligibleFrom > checkedOn) excluded.recentlyDonated++;
     else if (committed.has(id)) excluded.committedElsewhere++;
@@ -84,7 +91,7 @@ export async function suggestDonors(
       suggestions.push({
         donor,
         tier: tierOf(donor, request),
-        age: completedYears(candidate.dateOfBirth, checkedOn),
+        age: candidate.dateOfBirth ? completedYears(candidate.dateOfBirth, checkedOn) : null,
       });
     }
   }

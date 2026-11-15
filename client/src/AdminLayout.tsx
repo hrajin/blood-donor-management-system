@@ -63,6 +63,9 @@ export function AdminLayout() {
                 <NavLink to="/donors/new">
                   <AddIcon /> Add donor
                 </NavLink>
+                <NavLink to="/requests">
+                  <RequestIcon /> Requests
+                </NavLink>
               </nav>
               <div className="sidebar-account">
                 <span className="sidebar-email">{session.email}</span>
@@ -110,6 +113,15 @@ function AddIcon() {
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <circle cx="12" cy="12" r="9" />
       <path d="M12 8v8M8 12h8" />
+    </svg>
+  );
+}
+
+function RequestIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11Z" />
+      <path d="M12 11v6M9 14h6" />
     </svg>
   );
 }

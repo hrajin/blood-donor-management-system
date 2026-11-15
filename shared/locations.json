@@ -355,11 +355,16 @@
       "name": "Thakurgaon"
     }
   ],
-  "upazilas": [
+  "areas": [
     {
       "id": "BD40410004",
       "districtId": "BD4041",
       "name": "Abhaynagar"
+    },
+    {
+      "id": "BD3026-adabor",
+      "districtId": "BD3026",
+      "name": "Adabor"
     },
     {
       "id": "BD50100006",
@@ -380,6 +385,16 @@
       "id": "BD10060002",
       "districtId": "BD1006",
       "name": "Agailjhara"
+    },
+    {
+      "id": "BD3026-agargaon",
+      "districtId": "BD3026",
+      "name": "Agargaon"
+    },
+    {
+      "id": "BD2015-agrabad",
+      "districtId": "BD2015",
+      "name": "Agrabad"
     },
     {
       "id": "BD60360002",
@@ -410,6 +425,16 @@
       "id": "BD20030004",
       "districtId": "BD2003",
       "name": "Alikadam"
+    },
+    {
+      "id": "BD6091-amberkhana",
+      "districtId": "BD6091",
+      "name": "Amberkhana"
+    },
+    {
+      "id": "BD1006-amtala",
+      "districtId": "BD1006",
+      "name": "Amtala"
     },
     {
       "id": "BD10040009",
@@ -462,6 +487,11 @@
       "name": "Austagram"
     },
     {
+      "id": "BD3026-azimpur",
+      "districtId": "BD3026",
+      "name": "Azimpur"
+    },
+    {
       "id": "BD10060003",
       "districtId": "BD1006",
       "name": "Babuganj"
@@ -475,6 +505,11 @@
       "id": "BD55850003",
       "districtId": "BD5585",
       "name": "Badarganj"
+    },
+    {
+      "id": "BD3026-badda",
+      "districtId": "BD3026",
+      "name": "Badda"
     },
     {
       "id": "BD50690009",
@@ -507,6 +542,11 @@
       "name": "Bagmara"
     },
     {
+      "id": "BD2015-bahaddarhat",
+      "districtId": "BD2015",
+      "name": "Bahaddarhat"
+    },
+    {
       "id": "BD60360005",
       "districtId": "BD6036",
       "name": "Bahubal"
@@ -515,6 +555,11 @@
       "id": "BD30480006",
       "districtId": "BD3048",
       "name": "Bajitpur"
+    },
+    {
+      "id": "BD2015-bakalia",
+      "districtId": "BD2015",
+      "name": "Bakalia"
     },
     {
       "id": "BD10060007",
@@ -547,9 +592,19 @@
       "name": "Bamna"
     },
     {
+      "id": "BD3026-banani",
+      "districtId": "BD3026",
+      "name": "Banani"
+    },
+    {
       "id": "BD10060010",
       "districtId": "BD1006",
       "name": "Banaripara"
+    },
+    {
+      "id": "BD3026-banasree",
+      "districtId": "BD3026",
+      "name": "Banasree"
     },
     {
       "id": "BD20120004",
@@ -557,14 +612,29 @@
       "name": "Banchharampur"
     },
     {
+      "id": "BD1006-band-road",
+      "districtId": "BD1006",
+      "name": "Band Road"
+    },
+    {
       "id": "BD30670006",
       "districtId": "BD3067",
       "name": "Bandar"
     },
     {
+      "id": "BD6091-bandar-bazar",
+      "districtId": "BD6091",
+      "name": "Bandar Bazar"
+    },
+    {
       "id": "BD20030014",
       "districtId": "BD2003",
       "name": "Bandarban Sadar"
+    },
+    {
+      "id": "BD3026-bangshal",
+      "districtId": "BD3026",
+      "name": "Bangshal"
     },
     {
       "id": "BD60360011",
@@ -597,6 +667,11 @@
       "name": "Barhatta"
     },
     {
+      "id": "BD3026-baridhara",
+      "districtId": "BD3026",
+      "name": "Baridhara"
+    },
+    {
       "id": "BD10060051",
       "districtId": "BD1006",
       "name": "Barishal Sadar (Kotwali)"
@@ -612,9 +687,19 @@
       "name": "Barura"
     },
     {
+      "id": "BD3026-basabo",
+      "districtId": "BD3026",
+      "name": "Basabo"
+    },
+    {
       "id": "BD30930009",
       "districtId": "BD3093",
       "name": "Basail"
+    },
+    {
+      "id": "BD3026-bashundhara",
+      "districtId": "BD3026",
+      "name": "Bashundhara"
     },
     {
       "id": "BD40470012",
@@ -625,6 +710,11 @@
       "id": "BD10780038",
       "districtId": "BD1078",
       "name": "Bauphal"
+    },
+    {
+      "id": "BD2015-bayazid",
+      "districtId": "BD2015",
+      "name": "Bayazid"
     },
     {
       "id": "BD60910017",
@@ -747,6 +837,11 @@
       "name": "Bishwanath"
     },
     {
+      "id": "BD5081-boalia",
+      "districtId": "BD5081",
+      "name": "Boalia"
+    },
+    {
       "id": "BD20150012",
       "districtId": "BD2015",
       "name": "Boalkhali"
@@ -755,6 +850,11 @@
       "id": "BD30290018",
       "districtId": "BD3029",
       "name": "Boalmari"
+    },
+    {
+      "id": "BD3033-board-bazar",
+      "districtId": "BD3033",
+      "name": "Board Bazar"
     },
     {
       "id": "BD55270021",
@@ -777,6 +877,11 @@
       "name": "Borhanuddin"
     },
     {
+      "id": "BD4047-boyra",
+      "districtId": "BD4047",
+      "name": "Boyra"
+    },
+    {
       "id": "BD20120013",
       "districtId": "BD2012",
       "name": "Brahmanbaria Sadar"
@@ -792,6 +897,11 @@
       "name": "Burichang"
     },
     {
+      "id": "BD3026-cantonment",
+      "districtId": "BD3026",
+      "name": "Cantonment"
+    },
+    {
       "id": "BD20220016",
       "districtId": "BD2022",
       "name": "Chakaria"
@@ -802,6 +912,11 @@
       "name": "Chandanaish"
     },
     {
+      "id": "BD2015-chandgaon",
+      "districtId": "BD2015",
+      "name": "Chandgaon"
+    },
+    {
       "id": "BD20190027",
       "districtId": "BD2019",
       "name": "Chandina"
@@ -810,6 +925,11 @@
       "id": "BD20130022",
       "districtId": "BD2013",
       "name": "Chandpur Sadar"
+    },
+    {
+      "id": "BD3033-chandra",
+      "districtId": "BD3033",
+      "name": "Chandra"
     },
     {
       "id": "BD50700066",
@@ -832,6 +952,16 @@
       "name": "Charghat"
     },
     {
+      "id": "BD4561-charpara",
+      "districtId": "BD4561",
+      "name": "Charpara"
+    },
+    {
+      "id": "BD3067-chashara",
+      "districtId": "BD3067",
+      "name": "Chashara"
+    },
+    {
       "id": "BD20750010",
       "districtId": "BD2075",
       "name": "Chatkhil"
@@ -850,6 +980,16 @@
       "id": "BD40410011",
       "districtId": "BD4041",
       "name": "Chaugachha"
+    },
+    {
+      "id": "BD3026-chawkbazar",
+      "districtId": "BD3026",
+      "name": "Chawkbazar"
+    },
+    {
+      "id": "BD2015-chawkbazar",
+      "districtId": "BD2015",
+      "name": "Chawkbazar"
     },
     {
       "id": "BD20300014",
@@ -880,6 +1020,11 @@
       "id": "BD50880027",
       "districtId": "BD5088",
       "name": "Chouhali"
+    },
+    {
+      "id": "BD6091-chowhatta",
+      "districtId": "BD6091",
+      "name": "Chowhatta"
     },
     {
       "id": "BD40180023",
@@ -922,6 +1067,11 @@
       "name": "Dakkhin Surma"
     },
     {
+      "id": "BD3026-dakshinkhan",
+      "districtId": "BD3026",
+      "name": "Dakshinkhan"
+    },
+    {
       "id": "BD30860025",
       "districtId": "BD3086",
       "name": "Damudya"
@@ -962,6 +1112,11 @@
       "name": "Daulatpur"
     },
     {
+      "id": "BD4047-daulatpur",
+      "districtId": "BD4047",
+      "name": "Daulatpur"
+    },
+    {
       "id": "BD40870025",
       "districtId": "BD4087",
       "name": "Debhata"
@@ -980,6 +1135,11 @@
       "id": "BD30930023",
       "districtId": "BD3093",
       "name": "Delduar"
+    },
+    {
+      "id": "BD3026-demra",
+      "districtId": "BD3026",
+      "name": "Demra"
     },
     {
       "id": "BD60900029",
@@ -1005,6 +1165,16 @@
       "id": "BD30930025",
       "districtId": "BD3093",
       "name": "Dhanbari"
+    },
+    {
+      "id": "BD3026-dhanmondi",
+      "districtId": "BD3026",
+      "name": "Dhanmondi"
+    },
+    {
+      "id": "BD5585-dhap",
+      "districtId": "BD5585",
+      "name": "Dhap"
     },
     {
       "id": "BD60900032",
@@ -1050,6 +1220,11 @@
       "id": "BD55730015",
       "districtId": "BD5573",
       "name": "Domar"
+    },
+    {
+      "id": "BD2015-double-mooring",
+      "districtId": "BD2015",
+      "name": "Double Mooring"
     },
     {
       "id": "BD60900033",
@@ -1107,9 +1282,19 @@
       "name": "Faridpur Sadar"
     },
     {
+      "id": "BD3026-farmgate",
+      "districtId": "BD3026",
+      "name": "Farmgate"
+    },
+    {
       "id": "BD20150033",
       "districtId": "BD2015",
       "name": "Fatikchhari"
+    },
+    {
+      "id": "BD3067-fatullah",
+      "districtId": "BD3067",
+      "name": "Fatullah"
     },
     {
       "id": "BD60910035",
@@ -1152,6 +1337,11 @@
       "name": "Gabtali"
     },
     {
+      "id": "BD3033-gacha",
+      "districtId": "BD3033",
+      "name": "Gacha"
+    },
+    {
       "id": "BD45610022",
       "districtId": "BD4561",
       "name": "Gafargaon"
@@ -1172,6 +1362,11 @@
       "name": "Gangachara"
     },
     {
+      "id": "BD4561-ganginarpar",
+      "districtId": "BD4561",
+      "name": "Ganginarpar"
+    },
+    {
       "id": "BD40570047",
       "districtId": "BD4057",
       "name": "Gangni"
@@ -1190,6 +1385,16 @@
       "id": "BD30330030",
       "districtId": "BD3033",
       "name": "Gazipur Sadar"
+    },
+    {
+      "id": "BD2015-gec-circle",
+      "districtId": "BD2015",
+      "name": "GEC Circle"
+    },
+    {
+      "id": "BD3026-gendaria",
+      "districtId": "BD3026",
+      "name": "Gendaria"
     },
     {
       "id": "BD30930028",
@@ -1227,6 +1432,11 @@
       "name": "Golapganj"
     },
     {
+      "id": "BD4047-gollamari",
+      "districtId": "BD4047",
+      "name": "Gollamari"
+    },
+    {
       "id": "BD50700037",
       "districtId": "BD5070",
       "name": "Gomastapur"
@@ -1262,6 +1472,11 @@
       "name": "Guimara"
     },
     {
+      "id": "BD3026-gulshan",
+      "districtId": "BD3026",
+      "name": "Gulshan"
+    },
+    {
       "id": "BD50690041",
       "districtId": "BD5069",
       "name": "Gurudaspur"
@@ -1285,6 +1500,11 @@
       "id": "BD55270047",
       "districtId": "BD5527",
       "name": "Hakimpur"
+    },
+    {
+      "id": "BD2015-halishahar",
+      "districtId": "BD2015",
+      "name": "Halishahar"
     },
     {
       "id": "BD45610024",
@@ -1320,6 +1540,11 @@
       "id": "BD20750036",
       "districtId": "BD2075",
       "name": "Hatiya"
+    },
+    {
+      "id": "BD3026-hazaribagh",
+      "districtId": "BD3026",
+      "name": "Hazaribagh"
     },
     {
       "id": "BD10060036",
@@ -1367,6 +1592,11 @@
       "name": "Jagannathpur"
     },
     {
+      "id": "BD5585-jahaj-company-more",
+      "districtId": "BD5585",
+      "name": "Jahaj Company More"
+    },
+    {
       "id": "BD60910053",
       "districtId": "BD6091",
       "name": "Jaintapur"
@@ -1390,6 +1620,11 @@
       "id": "BD40410047",
       "districtId": "BD4041",
       "name": "Jashore Sadar"
+    },
+    {
+      "id": "BD3026-jatrabari",
+      "districtId": "BD3026",
+      "name": "Jatrabari"
     },
     {
       "id": "BD10420040",
@@ -1417,6 +1652,11 @@
       "name": "Jibannagar"
     },
     {
+      "id": "BD3033-joydebpur",
+      "districtId": "BD3033",
+      "name": "Joydebpur"
+    },
+    {
       "id": "BD50380047",
       "districtId": "BD5038",
       "name": "Joypurhat Sadar"
@@ -1437,6 +1677,11 @@
       "name": "Kabirhat"
     },
     {
+      "id": "BD4561-kachijhuli",
+      "districtId": "BD4561",
+      "name": "Kachijhuli"
+    },
+    {
       "id": "BD20130058",
       "districtId": "BD2013",
       "name": "Kachua"
@@ -1447,6 +1692,11 @@
       "name": "Kachua"
     },
     {
+      "id": "BD3026-kafrul",
+      "districtId": "BD3026",
+      "name": "Kafrul"
+    },
+    {
       "id": "BD50100054",
       "districtId": "BD5010",
       "name": "Kahaloo"
@@ -1455,6 +1705,11 @@
       "id": "BD55270056",
       "districtId": "BD5527",
       "name": "Kaharole"
+    },
+    {
+      "id": "BD3026-kalabagan",
+      "districtId": "BD3026",
+      "name": "Kalabagan"
     },
     {
       "id": "BD50380058",
@@ -1537,9 +1792,24 @@
       "name": "Kamarkhanda"
     },
     {
+      "id": "BD3026-kamrangirchar",
+      "districtId": "BD3026",
+      "name": "Kamrangirchar"
+    },
+    {
       "id": "BD60910059",
       "districtId": "BD6091",
       "name": "Kanaighat"
+    },
+    {
+      "id": "BD3067-kanchpur",
+      "districtId": "BD3067",
+      "name": "Kanchpur"
+    },
+    {
+      "id": "BD2019-kandirpar",
+      "districtId": "BD2019",
+      "name": "Kandirpar"
     },
     {
       "id": "BD10420043",
@@ -1597,9 +1867,24 @@
       "name": "Kawkhali"
     },
     {
+      "id": "BD1006-kawnia",
+      "districtId": "BD1006",
+      "name": "Kawnia"
+    },
+    {
+      "id": "BD3026-kawran-bazar",
+      "districtId": "BD3026",
+      "name": "Kawran Bazar"
+    },
+    {
       "id": "BD50880050",
       "districtId": "BD5088",
       "name": "Kazipur"
+    },
+    {
+      "id": "BD5081-kazla",
+      "districtId": "BD5081",
+      "name": "Kazla"
     },
     {
       "id": "BD45720047",
@@ -1627,6 +1912,16 @@
       "name": "Khaliajuri"
     },
     {
+      "id": "BD4047-khalishpur",
+      "districtId": "BD4047",
+      "name": "Khalishpur"
+    },
+    {
+      "id": "BD4047-khan-jahan-ali",
+      "districtId": "BD4047",
+      "name": "Khan Jahan Ali"
+    },
+    {
       "id": "BD55270060",
       "districtId": "BD5527",
       "name": "Khansama"
@@ -1637,9 +1932,24 @@
       "name": "Khetlal"
     },
     {
+      "id": "BD3026-khilgaon",
+      "districtId": "BD3026",
+      "name": "Khilgaon"
+    },
+    {
+      "id": "BD3026-khilkhet",
+      "districtId": "BD3026",
+      "name": "Khilkhet"
+    },
+    {
       "id": "BD40500063",
       "districtId": "BD4050",
       "name": "Khoksa"
+    },
+    {
+      "id": "BD2015-khulshi",
+      "districtId": "BD2015",
+      "name": "Khulshi"
     },
     {
       "id": "BD55730045",
@@ -1652,14 +1962,29 @@
       "name": "Kishoreganj Sadar"
     },
     {
+      "id": "BD3033-konabari",
+      "districtId": "BD3033",
+      "name": "Konabari"
+    },
+    {
       "id": "BD30350051",
       "districtId": "BD3035",
       "name": "Kotalipara"
     },
     {
+      "id": "BD2019-kotbari",
+      "districtId": "BD2019",
+      "name": "Kotbari"
+    },
+    {
       "id": "BD40440042",
       "districtId": "BD4044",
       "name": "Kotchandpur"
+    },
+    {
+      "id": "BD2015-kotwali",
+      "districtId": "BD2015",
+      "name": "Kotwali"
     },
     {
       "id": "BD40470053",
@@ -1680,6 +2005,11 @@
       "id": "BD40500071",
       "districtId": "BD4050",
       "name": "Kumarkhali"
+    },
+    {
+      "id": "BD6091-kumarpara",
+      "districtId": "BD6091",
+      "name": "Kumarpara"
     },
     {
       "id": "BD55490052",
@@ -1717,9 +2047,19 @@
       "name": "Lakshmipur Sadar"
     },
     {
+      "id": "BD3026-lalbagh",
+      "districtId": "BD3026",
+      "name": "Lalbagh"
+    },
+    {
       "id": "BD20190073",
       "districtId": "BD2019",
       "name": "Lalmai"
+    },
+    {
+      "id": "BD3026-lalmatia",
+      "districtId": "BD3026",
+      "name": "Lalmatia"
     },
     {
       "id": "BD10090054",
@@ -1745,6 +2085,11 @@
       "id": "BD20840058",
       "districtId": "BD2084",
       "name": "Langadu"
+    },
+    {
+      "id": "BD5081-laxmipur",
+      "districtId": "BD5081",
+      "name": "Laxmipur"
     },
     {
       "id": "BD20150047",
@@ -1822,6 +2167,11 @@
       "name": "Maheshpur"
     },
     {
+      "id": "BD3026-malibagh",
+      "districtId": "BD3026",
+      "name": "Malibagh"
+    },
+    {
       "id": "BD50640047",
       "districtId": "BD5064",
       "name": "Manda"
@@ -1850,6 +2200,11 @@
       "id": "BD20190074",
       "districtId": "BD2019",
       "name": "Manoharganj"
+    },
+    {
+      "id": "BD4561-maskanda",
+      "districtId": "BD4561",
+      "name": "Maskanda"
     },
     {
       "id": "BD10790058",
@@ -1892,8 +2247,18 @@
       "name": "Melandaha"
     },
     {
+      "id": "BD6091-mirabazar",
+      "districtId": "BD6091",
+      "name": "Mirabazar"
+    },
+    {
       "id": "BD40500094",
       "districtId": "BD4050",
+      "name": "Mirpur"
+    },
+    {
+      "id": "BD3026-mirpur",
+      "districtId": "BD3026",
       "name": "Mirpur"
     },
     {
@@ -1922,8 +2287,28 @@
       "name": "Mithapukur"
     },
     {
+      "id": "BD5585-modern-more",
+      "districtId": "BD5585",
+      "name": "Modern More"
+    },
+    {
+      "id": "BD3026-mogbazar",
+      "districtId": "BD3026",
+      "name": "Mogbazar"
+    },
+    {
+      "id": "BD3026-mohakhali",
+      "districtId": "BD3026",
+      "name": "Mohakhali"
+    },
+    {
       "id": "BD40550066",
       "districtId": "BD4055",
+      "name": "Mohammadpur"
+    },
+    {
+      "id": "BD3026-mohammadpur",
+      "districtId": "BD3026",
       "name": "Mohammadpur"
     },
     {
@@ -1957,9 +2342,24 @@
       "name": "Morelganj"
     },
     {
+      "id": "BD5081-motihar",
+      "districtId": "BD5081",
+      "name": "Motihar"
+    },
+    {
+      "id": "BD3026-motijheel",
+      "districtId": "BD3026",
+      "name": "Motijheel"
+    },
+    {
       "id": "BD60580074",
       "districtId": "BD6058",
       "name": "Moulvibazar Sadar"
+    },
+    {
+      "id": "BD3026-mugda",
+      "districtId": "BD3026",
+      "name": "Mugda"
     },
     {
       "id": "BD40570060",
@@ -1990,6 +2390,11 @@
       "id": "BD20190081",
       "districtId": "BD2019",
       "name": "Muradnagar"
+    },
+    {
+      "id": "BD2015-muradpur",
+      "districtId": "BD2015",
+      "name": "Muradpur"
     },
     {
       "id": "BD45610052",
@@ -2102,9 +2507,19 @@
       "name": "Narsingdi Sadar"
     },
     {
+      "id": "BD2015-nasirabad",
+      "districtId": "BD2015",
+      "name": "Nasirabad"
+    },
+    {
       "id": "BD20120090",
       "districtId": "BD2012",
       "name": "Nasirnagar"
+    },
+    {
+      "id": "BD1006-nathullabad",
+      "districtId": "BD1006",
+      "name": "Nathullabad"
     },
     {
       "id": "BD50690063",
@@ -2132,6 +2547,11 @@
       "name": "Netrakona Sadar"
     },
     {
+      "id": "BD3026-new-market",
+      "districtId": "BD3026",
+      "name": "New Market"
+    },
+    {
       "id": "BD50640069",
       "districtId": "BD5064",
       "name": "Niamatpur"
@@ -2147,14 +2567,29 @@
       "name": "Nilphamari Sadar"
     },
     {
+      "id": "BD4047-nirala",
+      "districtId": "BD4047",
+      "name": "Nirala"
+    },
+    {
       "id": "BD20750087",
       "districtId": "BD2075",
       "name": "Noakhali Sadar"
     },
     {
+      "id": "BD3026-old-dhaka",
+      "districtId": "BD3026",
+      "name": "Old Dhaka"
+    },
+    {
       "id": "BD60910060",
       "districtId": "BD6091",
       "name": "Osmaninagar"
+    },
+    {
+      "id": "BD2015-oxygen",
+      "districtId": "BD2015",
+      "name": "Oxygen"
     },
     {
       "id": "BD50810072",
@@ -2165,6 +2600,11 @@
       "id": "BD50760055",
       "districtId": "BD5076",
       "name": "Pabna Sadar"
+    },
+    {
+      "id": "BD2015-pahartali",
+      "districtId": "BD2015",
+      "name": "Pahartali"
     },
     {
       "id": "BD40470064",
@@ -2187,6 +2627,16 @@
       "name": "Palashbari"
     },
     {
+      "id": "BD3026-pallabi",
+      "districtId": "BD3026",
+      "name": "Pallabi"
+    },
+    {
+      "id": "BD3026-paltan",
+      "districtId": "BD3026",
+      "name": "Paltan"
+    },
+    {
       "id": "BD55770073",
       "districtId": "BD5577",
       "name": "Panchagarh Sadar"
@@ -2202,6 +2652,11 @@
       "name": "Panchhari"
     },
     {
+      "id": "BD2015-panchlaish",
+      "districtId": "BD2015",
+      "name": "Panchlaish"
+    },
+    {
       "id": "BD30820073",
       "districtId": "BD3082",
       "name": "Pangsha"
@@ -2215,6 +2670,11 @@
       "id": "BD55270077",
       "districtId": "BD5527",
       "name": "Parbatipur"
+    },
+    {
+      "id": "BD2015-patenga",
+      "districtId": "BD2015",
+      "name": "Patenga"
     },
     {
       "id": "BD55520070",
@@ -2322,6 +2782,11 @@
       "name": "Rajbari Sadar"
     },
     {
+      "id": "BD2019-rajganj",
+      "districtId": "BD2019",
+      "name": "Rajganj"
+    },
+    {
       "id": "BD55490008",
       "districtId": "BD5549",
       "name": "Rajibpur"
@@ -2335,6 +2800,11 @@
       "id": "BD30540080",
       "districtId": "BD3054",
       "name": "Rajoir"
+    },
+    {
+      "id": "BD5081-rajpara",
+      "districtId": "BD5081",
+      "name": "Rajpara"
     },
     {
       "id": "BD20510065",
@@ -2352,9 +2822,19 @@
       "name": "Ramgati"
     },
     {
+      "id": "BD3026-ramna",
+      "districtId": "BD3026",
+      "name": "Ramna"
+    },
+    {
       "id": "BD40010073",
       "districtId": "BD4001",
       "name": "Rampal"
+    },
+    {
+      "id": "BD3026-rampura",
+      "districtId": "BD3026",
+      "name": "Rampura"
     },
     {
       "id": "BD20220066",
@@ -2417,6 +2897,11 @@
       "name": "Ruma"
     },
     {
+      "id": "BD1006-rupatali",
+      "districtId": "BD1006",
+      "name": "Rupatali"
+    },
+    {
       "id": "BD30670068",
       "districtId": "BD3067",
       "name": "Rupganj"
@@ -2427,9 +2912,19 @@
       "name": "Rupsa"
     },
     {
+      "id": "BD3026-sabujbagh",
+      "districtId": "BD3026",
+      "name": "Sabujbagh"
+    },
+    {
       "id": "BD20190033",
       "districtId": "BD2019",
       "name": "Sadar Dakkhin"
+    },
+    {
+      "id": "BD1006-sadar-road",
+      "districtId": "BD1006",
+      "name": "Sadar Road"
     },
     {
       "id": "BD30290084",
@@ -2502,6 +2997,11 @@
       "name": "Satkhira Sadar"
     },
     {
+      "id": "BD5585-satmatha",
+      "districtId": "BD5585",
+      "name": "Satmatha"
+    },
+    {
       "id": "BD30560070",
       "districtId": "BD3056",
       "name": "Saturia"
@@ -2517,9 +3017,29 @@
       "name": "Senbag"
     },
     {
+      "id": "BD5081-shah-makhdum",
+      "districtId": "BD5081",
+      "name": "Shah Makhdum"
+    },
+    {
+      "id": "BD3026-shahbagh",
+      "districtId": "BD3026",
+      "name": "Shahbagh"
+    },
+    {
+      "id": "BD5081-shaheb-bazar",
+      "districtId": "BD5081",
+      "name": "Shaheb Bazar"
+    },
+    {
       "id": "BD50880067",
       "districtId": "BD5088",
       "name": "Shahjadpur"
+    },
+    {
+      "id": "BD6091-shahjalal-upashahar",
+      "districtId": "BD6091",
+      "name": "Shahjalal Upashahar"
     },
     {
       "id": "BD20130095",
@@ -2547,9 +3067,24 @@
       "name": "Shalla"
     },
     {
+      "id": "BD4561-shambhuganj",
+      "districtId": "BD4561",
+      "name": "Shambhuganj"
+    },
+    {
       "id": "BD60900087",
       "districtId": "BD6090",
       "name": "Shantiganj"
+    },
+    {
+      "id": "BD3026-shantinagar",
+      "districtId": "BD3026",
+      "name": "Shantinagar"
+    },
+    {
+      "id": "BD5585-shapla-chattar",
+      "districtId": "BD5585",
+      "name": "Shapla Chattar"
     },
     {
       "id": "BD40010077",
@@ -2565,6 +3100,11 @@
       "id": "BD40410090",
       "districtId": "BD4041",
       "name": "Sharsha"
+    },
+    {
+      "id": "BD2019-shashongacha",
+      "districtId": "BD2019",
+      "name": "Shashongacha"
     },
     {
       "id": "BD60360087",
@@ -2585,6 +3125,11 @@
       "id": "BD30560078",
       "districtId": "BD3056",
       "name": "Shibalay"
+    },
+    {
+      "id": "BD4047-shibbari",
+      "districtId": "BD4047",
+      "name": "Shibbari"
     },
     {
       "id": "BD30540087",
@@ -2612,6 +3157,26 @@
       "name": "Shyamnagar"
     },
     {
+      "id": "BD3026-shyamoli",
+      "districtId": "BD3026",
+      "name": "Shyamoli"
+    },
+    {
+      "id": "BD3026-shyampur",
+      "districtId": "BD3026",
+      "name": "Shyampur"
+    },
+    {
+      "id": "BD3067-siddhirganj",
+      "districtId": "BD3067",
+      "name": "Siddhirganj"
+    },
+    {
+      "id": "BD3067-signboard",
+      "districtId": "BD3067",
+      "name": "Signboard"
+    },
+    {
       "id": "BD30560082",
       "districtId": "BD3056",
       "name": "Singair"
@@ -2635,6 +3200,11 @@
       "id": "BD20150086",
       "districtId": "BD2015",
       "name": "Sitakunda"
+    },
+    {
+      "id": "BD4047-sonadanga",
+      "districtId": "BD4047",
+      "name": "Sonadanga"
     },
     {
       "id": "BD20300094",
@@ -2687,6 +3257,11 @@
       "name": "Subarnachar"
     },
     {
+      "id": "BD6091-subidbazar",
+      "districtId": "BD6091",
+      "name": "Subidbazar"
+    },
+    {
       "id": "BD50760083",
       "districtId": "BD5076",
       "name": "Sujanagar"
@@ -2700,6 +3275,11 @@
       "id": "BD55320091",
       "districtId": "BD5532",
       "name": "Sundarganj"
+    },
+    {
+      "id": "BD3026-sutrapur",
+      "districtId": "BD3026",
+      "name": "Sutrapur"
     },
     {
       "id": "BD60910062",
@@ -2757,6 +3337,11 @@
       "name": "Tazumuddin"
     },
     {
+      "id": "BD3026-tejgaon",
+      "districtId": "BD3026",
+      "name": "Tejgaon"
+    },
+    {
       "id": "BD20220090",
       "districtId": "BD2022",
       "name": "Teknaf"
@@ -2782,14 +3367,34 @@
       "name": "Thanchi"
     },
     {
+      "id": "BD6091-tilagarh",
+      "districtId": "BD6091",
+      "name": "Tilagarh"
+    },
+    {
       "id": "BD20190094",
       "districtId": "BD2019",
       "name": "Titas"
     },
     {
+      "id": "BD2019-tomsom-bridge",
+      "districtId": "BD2019",
+      "name": "Tomsom Bridge"
+    },
+    {
+      "id": "BD3033-tongi",
+      "districtId": "BD3033",
+      "name": "Tongi"
+    },
+    {
       "id": "BD30590094",
       "districtId": "BD3059",
       "name": "Tongibari"
+    },
+    {
+      "id": "BD4561-town-hall",
+      "districtId": "BD4561",
+      "name": "Town Hall"
     },
     {
       "id": "BD45610094",
@@ -2800,6 +3405,11 @@
       "id": "BD30350091",
       "districtId": "BD3035",
       "name": "Tungipara"
+    },
+    {
+      "id": "BD3026-turag",
+      "districtId": "BD3026",
+      "name": "Turag"
     },
     {
       "id": "BD10060094",
@@ -2822,6 +3432,26 @@
       "name": "Ullapara"
     },
     {
+      "id": "BD5081-uposhohor",
+      "districtId": "BD5081",
+      "name": "Uposhohor"
+    },
+    {
+      "id": "BD3026-uttara",
+      "districtId": "BD3026",
+      "name": "Uttara"
+    },
+    {
+      "id": "BD3026-uttarkhan",
+      "districtId": "BD3026",
+      "name": "Uttarkhan"
+    },
+    {
+      "id": "BD3026-wari",
+      "districtId": "BD3026",
+      "name": "Wari"
+    },
+    {
       "id": "BD30860094",
       "districtId": "BD3086",
       "name": "Zajira"
@@ -2830,6 +3460,11 @@
       "id": "BD60910094",
       "districtId": "BD6091",
       "name": "Zakiganj"
+    },
+    {
+      "id": "BD6091-zindabazar",
+      "districtId": "BD6091",
+      "name": "Zindabazar"
     }
   ]
 }

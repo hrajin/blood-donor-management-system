@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { addDays, bangladeshDate } from './bangladesh-time.ts';
-import { type BloodGroup, bangladeshMobile, bloodGroups } from './donor.ts';
-import { isValidLocation } from './locations.ts';
+import { areaId, type BloodGroup, bangladeshMobile, bloodGroups } from './donor.ts';
+import { isValidDistrict } from './locations.ts';
 
 // Values and limits follow SRS Table 3.4-A and §8.3.
 export const maxUnits = 10;
@@ -134,7 +134,7 @@ export const requestInput = z
     ward: optionalText(50),
     divisionId: z.string(),
     districtId: z.string(),
-    upazilaId: z.string(),
+    areaId,
     reason: z.enum(requestReasons).nullable(),
     contactName: z
       .string()
@@ -145,9 +145,9 @@ export const requestInput = z
     relationship: z.enum(relationships, 'Choose the relationship to the patient'),
     notes: optionalText(500),
   })
-  .refine(isValidLocation, {
-    message: 'Choose the hospital’s division, district and upazila',
-    path: ['upazilaId'],
+  .refine(isValidDistrict, {
+    message: 'Choose the hospital’s division and district',
+    path: ['districtId'],
   })
   .refine((request) => request.requiredOn >= bangladeshDate(new Date()), {
     message: 'The date cannot be in the past',
@@ -181,6 +181,7 @@ export type RequestCounts = {
 export type BloodRequestSummary = RequestInput &
   RequestCounts & {
     id: string;
+    areaName: string;
     code: string;
     status: RequestStatus;
     createdAt: string;
@@ -192,9 +193,11 @@ export type DonorContact = {
   name: string;
   phone: string;
   bloodGroup: BloodGroup;
-  divisionId: string;
-  districtId: string;
-  upazilaId: string;
+  /** The donor's location may be partly or not recorded. */
+  divisionId: string | null;
+  districtId: string | null;
+  areaId: string | null;
+  areaName: string | null;
   available: boolean;
   donationCount: number;
   lastDonatedAt: string | null;
@@ -221,10 +224,14 @@ export type RequestPage = {
   pageSize: number;
 };
 
-/** How close a donor lives to the hospital (SRS §4.3): 1 = same upazila … 4 = another division. */
-export type Tier = 1 | 2 | 3 | 4;
+/**
+ * How close a donor lives to the hospital (SRS §4.3): 1 = same area, 2 = same district,
+ * 3 = same division, 4 = another division, 5 = not known (the location is not fully recorded).
+ */
+export type Tier = 1 | 2 | 3 | 4 | 5;
 
-export type DonorSuggestion = { donor: DonorContact; tier: Tier; age: number };
+/** `age` is null when the date of birth is not recorded. */
+export type DonorSuggestion = { donor: DonorContact; tier: Tier; age: number | null };
 
 export type SuggestionResult = {
   suggestions: DonorSuggestion[];

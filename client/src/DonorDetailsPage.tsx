@@ -2,7 +2,7 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { bangladeshDate, completedYears } from '../../shared/bangladesh-time.ts';
 import { type Donor, genderLabels } from '../../shared/donor.ts';
-import { zoneName } from '../../shared/locations.ts';
+import { placeName, zoneName } from '../../shared/locations.ts';
 import { AvailabilitySwitch } from './AvailabilitySwitch.tsx';
 import { ApiError, getDonor, setAvailability } from './api.ts';
 import { Breadcrumbs } from './Breadcrumbs.tsx';
@@ -74,7 +74,8 @@ function DonorDetails({ donor, onChange }: { donor: Donor; onChange: (donor: Don
   const [toggling, setToggling] = useState(false);
   const showToast = useToast();
   const today = bangladeshDate(new Date());
-  const sameAddress = donor.presentAddress === donor.permanentAddress;
+  const sameAddress =
+    donor.presentAddress !== null && donor.presentAddress === donor.permanentAddress;
 
   async function toggleAvailability() {
     setToggleError('');
@@ -100,8 +101,13 @@ function DonorDetails({ donor, onChange }: { donor: Donor; onChange: (donor: Don
         <div className="profile-main">
           <h1>{donor.name}</h1>
           <p className="muted">
-            {genderLabels[donor.gender]} · {completedYears(donor.dateOfBirth, today)} years ·{' '}
-            {zoneName(donor.districtId)}
+            {[
+              donor.gender && genderLabels[donor.gender],
+              donor.dateOfBirth && `${completedYears(donor.dateOfBirth, today)} years`,
+              placeName(donor),
+            ]
+              .filter(Boolean)
+              .join(' · ')}
           </p>
           <div className="profile-actions">
             <a href={`tel:${donor.phone}`} className="button secondary">
@@ -140,11 +146,17 @@ function DonorDetails({ donor, onChange }: { donor: Donor; onChange: (donor: Don
         <DetailsCard title="Personal details">
           <Detail label="Full name">{donor.name}</Detail>
           <Detail label="Date of birth">
-            {formatDay(donor.dateOfBirth)}{' '}
-            <span className="muted">({completedYears(donor.dateOfBirth, today)} years)</span>
+            {donor.dateOfBirth ? (
+              <>
+                {formatDay(donor.dateOfBirth)}{' '}
+                <span className="muted">({completedYears(donor.dateOfBirth, today)} years)</span>
+              </>
+            ) : (
+              <NotGiven />
+            )}
           </Detail>
-          <Detail label="Gender">{genderLabels[donor.gender]}</Detail>
-          <Detail label="NID number">{donor.nidNumber}</Detail>
+          <Detail label="Gender">{donor.gender ? genderLabels[donor.gender] : <NotGiven />}</Detail>
+          <Detail label="NID number">{donor.nidNumber ?? <NotGiven />}</Detail>
         </DetailsCard>
 
         <DetailsCard title="Contact">
@@ -181,15 +193,19 @@ function DonorDetails({ donor, onChange }: { donor: Donor; onChange: (donor: Don
         </DetailsCard>
 
         <DetailsCard title="Location and address">
-          <Detail label="Division">{zoneName(donor.divisionId)}</Detail>
-          <Detail label="District">{zoneName(donor.districtId)}</Detail>
-          <Detail label="Upazila">{zoneName(donor.upazilaId)}</Detail>
-          <Detail label="Present address">{donor.presentAddress}</Detail>
+          <Detail label="Division">
+            {donor.divisionId ? zoneName(donor.divisionId) : <NotGiven />}
+          </Detail>
+          <Detail label="District">
+            {donor.districtId ? zoneName(donor.districtId) : <NotGiven />}
+          </Detail>
+          <Detail label="Area / City">{donor.areaName ?? <NotGiven />}</Detail>
+          <Detail label="Present address">{donor.presentAddress ?? <NotGiven />}</Detail>
           <Detail label="Permanent address">
             {sameAddress ? (
               <span className="muted">Same as present address</span>
             ) : (
-              donor.permanentAddress
+              (donor.permanentAddress ?? <NotGiven />)
             )}
           </Detail>
         </DetailsCard>
@@ -218,4 +234,8 @@ function Detail({ label, children }: { label: string; children: ReactNode }) {
       <dd>{children}</dd>
     </div>
   );
+}
+
+function NotGiven() {
+  return <span className="muted">Not given</span>;
 }

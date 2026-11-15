@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { createApp } from './app.ts';
+import { AreaModel } from './area-model.ts';
 import { BloodRequestModel } from './blood-request-model.ts';
 import { loadConfig } from './config.ts';
 import { DonorModel } from './donor-model.ts';
@@ -7,9 +8,10 @@ import { DonorModel } from './donor-model.ts';
 const config = loadConfig(process.env);
 
 await mongoose.connect(config.MONGODB_URI);
-// Builds the unique indexes (donor phone and NID, request code) before any request relies on them.
+// Builds the unique indexes (donor phone and NID, request code, area name) before any request relies on them.
 await DonorModel.init();
 await BloodRequestModel.init();
+await AreaModel.init();
 
 const server = createApp(config).listen(config.PORT, (error) => {
   if (error) throw error;

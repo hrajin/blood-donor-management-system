@@ -16,7 +16,7 @@ type FormValues = {
   bloodGroup: string;
   divisionId: string;
   districtId: string;
-  upazilaId: string;
+  areaId: string;
   presentAddress: string;
   permanentAddress: string;
   sameAddress: boolean;
@@ -35,7 +35,7 @@ const emptyForm: FormValues = {
   bloodGroup: '',
   divisionId: '',
   districtId: '',
-  upazilaId: '',
+  areaId: '',
   presentAddress: '',
   permanentAddress: '',
   sameAddress: false,
@@ -46,22 +46,43 @@ const emptyForm: FormValues = {
 
 function toFormValues(donor: Donor): FormValues {
   return {
-    ...donor,
+    name: donor.name,
+    phone: donor.phone,
+    bloodGroup: donor.bloodGroup,
     email: donor.email ?? '',
-    sameAddress: donor.presentAddress === donor.permanentAddress,
+    dateOfBirth: donor.dateOfBirth ?? '',
+    gender: donor.gender ?? '',
+    nidNumber: donor.nidNumber ?? '',
+    divisionId: donor.divisionId ?? '',
+    districtId: donor.districtId ?? '',
+    areaId: donor.areaId ?? '',
+    presentAddress: donor.presentAddress ?? '',
+    permanentAddress: donor.permanentAddress ?? '',
+    sameAddress: donor.presentAddress !== null && donor.presentAddress === donor.permanentAddress,
+    available: donor.available,
     donationCount: String(donor.donationCount),
     lastDonatedAt: donor.lastDonatedAt ?? '',
   };
 }
 
+/** Empty optional fields are sent as null, "not recorded". */
+const orNull = (value: string) => value.trim() || null;
+
 function toInput({ sameAddress, ...values }: FormValues) {
   return {
     ...values,
-    email: values.email.trim() || null,
-    permanentAddress: sameAddress ? values.presentAddress : values.permanentAddress,
+    email: orNull(values.email),
+    dateOfBirth: orNull(values.dateOfBirth),
+    gender: orNull(values.gender),
+    nidNumber: orNull(values.nidNumber),
+    divisionId: orNull(values.divisionId),
+    districtId: orNull(values.districtId),
+    areaId: orNull(values.areaId),
+    presentAddress: orNull(values.presentAddress),
+    permanentAddress: orNull(sameAddress ? values.presentAddress : values.permanentAddress),
     // An empty field must fail validation, not become 0.
     donationCount: values.donationCount === '' ? Number.NaN : Number(values.donationCount),
-    lastDonatedAt: values.lastDonatedAt || null,
+    lastDonatedAt: orNull(values.lastDonatedAt),
   };
 }
 
@@ -132,57 +153,24 @@ export function DonorForm({ donorId: id, onSaved, onCancel }: DonorFormProps) {
         </p>
       )}
 
-      <FormSection number={1} title="Personal details" hint="As written on the national ID card.">
-        <Field label="Full name" error={errors.name}>
-          {(fieldId) => (
-            <input
-              id={fieldId}
-              autoComplete="off"
-              placeholder="e.g. Fatema Akter"
-              value={values.name}
-              aria-invalid={invalid('name')}
-              onChange={(event) => change({ name: event.target.value })}
-            />
-          )}
-        </Field>
+      <FormSection
+        number={1}
+        title="Basic details"
+        hint="All you need to add a donor. Everything below is optional and can be filled in later."
+      >
         <div className="form-row">
-          <Field label="Date of birth" error={errors.dateOfBirth}>
+          <Field label="Full name" error={errors.name}>
             {(fieldId) => (
               <input
                 id={fieldId}
-                type="date"
-                max={today}
-                value={values.dateOfBirth}
-                aria-invalid={invalid('dateOfBirth')}
-                onChange={(event) => change({ dateOfBirth: event.target.value })}
-              />
-            )}
-          </Field>
-          <Field label="NID number" error={errors.nidNumber}>
-            {(fieldId) => (
-              <input
-                id={fieldId}
-                inputMode="numeric"
                 autoComplete="off"
-                placeholder="10, 13 or 17 digits"
-                value={values.nidNumber}
-                aria-invalid={invalid('nidNumber')}
-                onChange={(event) => change({ nidNumber: event.target.value })}
+                placeholder="e.g. Fatema Akter"
+                value={values.name}
+                aria-invalid={invalid('name')}
+                onChange={(event) => change({ name: event.target.value })}
               />
             )}
           </Field>
-        </div>
-        <ChoiceGroup
-          legend="Gender"
-          options={genders.map((gender) => ({ value: gender, label: genderLabels[gender] }))}
-          value={values.gender}
-          error={errors.gender}
-          onChange={(gender) => change({ gender })}
-        />
-      </FormSection>
-
-      <FormSection number={2} title="Contact" hint="Used by admins to reach the donor.">
-        <div className="form-row">
           <Field label="Mobile number" error={errors.phone}>
             {(fieldId) => (
               <input
@@ -196,6 +184,60 @@ export function DonorForm({ donorId: id, onSaved, onCancel }: DonorFormProps) {
               />
             )}
           </Field>
+        </div>
+        <ChoiceGroup
+          legend="Blood group"
+          className="blood-choices"
+          options={bloodGroups.map((group) => ({ value: group, label: group }))}
+          value={values.bloodGroup}
+          error={errors.bloodGroup}
+          onChange={(bloodGroup) => change({ bloodGroup })}
+        />
+      </FormSection>
+
+      <FormSection
+        number={2}
+        title="Personal details"
+        hint="Optional. With a date of birth, donors outside ages 18–60 are not suggested."
+      >
+        <div className="form-row">
+          <Field label="Date of birth (optional)" error={errors.dateOfBirth}>
+            {(fieldId) => (
+              <input
+                id={fieldId}
+                type="date"
+                max={today}
+                value={values.dateOfBirth}
+                aria-invalid={invalid('dateOfBirth')}
+                onChange={(event) => change({ dateOfBirth: event.target.value })}
+              />
+            )}
+          </Field>
+          <Field label="NID number (optional)" error={errors.nidNumber}>
+            {(fieldId) => (
+              <input
+                id={fieldId}
+                inputMode="numeric"
+                autoComplete="off"
+                placeholder="10, 13 or 17 digits"
+                value={values.nidNumber}
+                aria-invalid={invalid('nidNumber')}
+                onChange={(event) => change({ nidNumber: event.target.value })}
+              />
+            )}
+          </Field>
+        </div>
+        <div className="form-row">
+          <ChoiceGroup
+            legend="Gender (optional)"
+            options={[
+              ...genders.map((gender) => ({ value: gender, label: genderLabels[gender] })),
+              { value: '', label: 'Not given' },
+            ]}
+            value={values.gender}
+            error={errors.gender}
+            onChange={(gender) => change({ gender })}
+          />
           <Field label="Email (optional)" error={errors.email}>
             {(fieldId) => (
               <input
@@ -214,16 +256,15 @@ export function DonorForm({ donorId: id, onSaved, onCancel }: DonorFormProps) {
       <FormSection
         number={3}
         title="Location and address"
-        hint="Where the donor lives now, used to find donors by area."
+        hint="Optional, but the area / city is how nearby donors are found for a request."
       >
         <LocationSelect
-          emptyLabel="Choose…"
-          required
+          mode="optional"
           value={values}
-          error={errors.upazilaId}
+          error={errors.areaId ?? errors.districtId ?? errors.divisionId}
           onChange={(location) => change(location)}
         />
-        <Field label="Present address" error={errors.presentAddress}>
+        <Field label="Present address (optional)" error={errors.presentAddress}>
           {(fieldId) => (
             <textarea
               id={fieldId}
@@ -244,12 +285,12 @@ export function DonorForm({ donorId: id, onSaved, onCancel }: DonorFormProps) {
           Permanent address is the same as present address
         </label>
         {!values.sameAddress && (
-          <Field label="Permanent address" error={errors.permanentAddress}>
+          <Field label="Permanent address (optional)" error={errors.permanentAddress}>
             {(fieldId) => (
               <textarea
                 id={fieldId}
                 rows={2}
-                placeholder="Village or house, post office, upazila, district"
+                placeholder="Village or house, post office, area, district"
                 value={values.permanentAddress}
                 aria-invalid={invalid('permanentAddress')}
                 onChange={(event) => change({ permanentAddress: event.target.value })}
@@ -261,17 +302,9 @@ export function DonorForm({ donorId: id, onSaved, onCancel }: DonorFormProps) {
 
       <FormSection
         number={4}
-        title="Blood and donations"
-        hint="Leave the last donation empty for a first-time donor."
+        title="Donations and availability"
+        hint="A new donor starts with no donations and available; change it if you know more."
       >
-        <ChoiceGroup
-          legend="Blood group"
-          className="blood-choices"
-          options={bloodGroups.map((group) => ({ value: group, label: group }))}
-          value={values.bloodGroup}
-          error={errors.bloodGroup}
-          onChange={(bloodGroup) => change({ bloodGroup })}
-        />
         <div className="form-row">
           <Field label="Donations so far" error={errors.donationCount}>
             {(fieldId) => (

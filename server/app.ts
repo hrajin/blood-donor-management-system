@@ -7,6 +7,7 @@ import mongoose from 'mongoose';
 import { ZodError } from 'zod';
 import type { ApiErrorBody } from '../shared/donor.ts';
 import { fieldErrors } from '../shared/field-errors.ts';
+import { areaRoutes } from './area-routes.ts';
 import { authRoutes, requireAdmin, sessionCookieName } from './auth.ts';
 import type { Config } from './config.ts';
 import { dashboardRoutes } from './dashboard-routes.ts';
@@ -63,6 +64,7 @@ export function createApp(config: Config): express.Express {
   );
 
   app.use('/api', authRoutes(config));
+  app.use('/api/areas', requireAdmin, areaRoutes());
   app.use('/api/dashboard', requireAdmin, dashboardRoutes());
   app.use('/api/donors', requireAdmin, donorRoutes());
   app.use('/api/requests', requireAdmin, requestRoutes());

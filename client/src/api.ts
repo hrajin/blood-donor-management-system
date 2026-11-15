@@ -8,6 +8,7 @@ import type {
 } from '../../shared/blood-request.ts';
 import type { DashboardStats } from '../../shared/dashboard.ts';
 import type { ApiErrorBody, Donor, DonorInput, DonorPage } from '../../shared/donor.ts';
+import type { Area } from '../../shared/locations.ts';
 
 export class ApiError extends Error {
   status: number;
@@ -132,4 +133,14 @@ export async function recordDonation(id: string, donorId: string): Promise<Blood
 
 export async function cancelRequest(id: string, input: CancelInput): Promise<BloodRequest> {
   return (await (await request('POST', `/requests/${id}/cancel`, input)).json()) as BloodRequest;
+}
+
+export async function listAreas(districtId: string, signal: AbortSignal): Promise<Area[]> {
+  const query = new URLSearchParams({ districtId });
+  return (await (await request('GET', `/areas?${query}`, undefined, signal)).json()) as Area[];
+}
+
+/** Adds an area, or returns the existing one with the same name in that district. */
+export async function addArea(districtId: string, name: string): Promise<Area> {
+  return (await (await request('POST', '/areas', { districtId, name })).json()) as Area;
 }

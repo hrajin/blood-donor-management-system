@@ -5,10 +5,12 @@ import {
   type ApiErrorBody,
   availabilityInput,
   bloodGroups,
+  type DonorInput,
   type DonorSort,
   donorInput,
   donorSorts,
 } from '../shared/donor.ts';
+import { findArea, unknownArea } from './area-model.ts';
 import { DonorModel, toDonor } from './donor-model.ts';
 
 const pageSize = 21;
@@ -16,7 +18,7 @@ const pageSize = 21;
 const donorFilters = z.object({
   divisionId: z.string().optional(),
   districtId: z.string().optional(),
-  upazilaId: z.string().optional(),
+  areaId: z.string().optional(),
   bloodGroup: z.enum(bloodGroups).optional(),
   available: z.enum(['true', 'false']).optional(),
   search: z.string().trim().max(100).optional(),
@@ -51,6 +53,15 @@ function duplicateBody(error: unknown): ApiErrorBody | null {
   return { error: message, fields: { [field]: message } };
 }
 
+/** The name to save with the donor: null without an area; undefined if it is not in the district. */
+async function areaNameOf(input: DonorInput): Promise<string | null | undefined> {
+  if (input.areaId === null) return null;
+  // The schema guarantees a district whenever there is an area.
+  if (input.districtId === null) return undefined;
+  const area = await findArea(input.areaId, input.districtId);
+  return area?.name;
+}
+
 export function donorRoutes(): Router {
   const router = Router();
 
@@ -59,7 +70,7 @@ export function donorRoutes(): Router {
     const query: mongoose.QueryFilter<typeof DonorModel> = {};
     if (filters.divisionId) query.divisionId = filters.divisionId;
     if (filters.districtId) query.districtId = filters.districtId;
-    if (filters.upazilaId) query.upazilaId = filters.upazilaId;
+    if (filters.areaId) query.areaId = filters.areaId;
     if (filters.bloodGroup) query.bloodGroup = filters.bloodGroup;
     if (filters.available) query.available = filters.available === 'true';
     if (filters.search) {
@@ -80,8 +91,13 @@ export function donorRoutes(): Router {
 
   router.post('/', async (req, res) => {
     const input = donorInput.parse(req.body);
+    const areaName = await areaNameOf(input);
+    if (areaName === undefined) {
+      res.status(400).json(unknownArea);
+      return;
+    }
     try {
-      const document = await DonorModel.create(input);
+      const document = await DonorModel.create({ ...input, areaName });
       res.status(201).json(toDonor(document.toObject()));
     } catch (error) {
       const duplicate = duplicateBody(error);
@@ -107,8 +123,14 @@ export function donorRoutes(): Router {
       return;
     }
     const input = donorInput.parse(req.body);
+    const areaName = await areaNameOf(input);
+    if (areaName === undefined) {
+      res.status(400).json(unknownArea);
+      return;
+    }
     try {
-      const document = await DonorModel.findByIdAndUpdate(id.data, input, {
+      const update = { ...input, areaName };
+      const document = await DonorModel.findByIdAndUpdate(id.data, update, {
         returnDocument: 'after',
         runValidators: true,
       }).lean();

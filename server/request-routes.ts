@@ -10,6 +10,7 @@ import {
   requestStatuses,
   responseInput,
 } from '../shared/blood-request.ts';
+import { findArea, unknownArea } from './area-model.ts';
 import {
   type BloodRequestDocument,
   BloodRequestModel,
@@ -121,9 +122,15 @@ export function requestRoutes(): Router {
 
   router.post('/', async (req, res) => {
     const input = requestInput.parse(req.body);
+    const area = await findArea(input.areaId, input.districtId);
+    if (!area) {
+      res.status(400).json(unknownArea);
+      return;
+    }
     // Admin-created requests start open (SRS FR-REQ-03).
     const document = await BloodRequestModel.create({
       ...input,
+      areaName: area.name,
       code: await nextRequestCode(new Date()),
       status: 'open',
     });

@@ -1,13 +1,13 @@
 import { type FormEvent, useId, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { districts, divisions, upazilas } from '../../shared/locations.ts';
+import { builtInAreas, districts, divisions } from '../../shared/locations.ts';
 import { ApiError, signIn } from './api.ts';
 import { DonationIllustration } from './DonationIllustration.tsx';
 
 const coverage = [
   { value: divisions.length, label: 'Divisions' },
   { value: districts.length, label: 'Districts' },
-  { value: upazilas.length, label: 'Upazilas' },
+  { value: builtInAreas.length, label: 'Areas' },
 ];
 
 export function LoginPage() {
@@ -50,7 +50,7 @@ export function LoginPage() {
             <h2>Find a willing donor, fast.</h2>
             <p className="login-lead">
               Keep the donor register up to date: add donors, mark who is available and find the
-              right blood group in the right upazila.
+              right blood group in the right area.
             </p>
           </div>
           <ul className="login-stats">

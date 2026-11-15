@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { DonorModel } from '../server/donor-model.ts';
 import { bangladeshDate, shiftYears } from '../shared/bangladesh-time.ts';
 import { type BloodGroup, type DonorInput, donorInput, type Gender } from '../shared/donor.ts';
-import { districts, upazilas, zoneName } from '../shared/locations.ts';
+import { builtInAreas, districts, zoneName } from '../shared/locations.ts';
 
 const env = z
   .object({ MONGODB_URI: z.string().min(1), SEED_COUNT: z.coerce.number().int().min(1).max(5000) })
@@ -126,23 +126,30 @@ function unique(make: () => string, taken: Set<string>): string {
   }
 }
 
-function randomLocation() {
-  const upazila = pick(upazilas);
-  const district = districts.find((d) => d.id === upazila.districtId);
-  if (!district) throw new Error(`Upazila ${upazila.id} has no district`);
-  return { divisionId: district.divisionId, districtId: district.id, upazilaId: upazila.id };
+type SeedLocation = { divisionId: string; districtId: string; areaId: string; areaName: string };
+
+// Built-in areas include well-known city areas such as Uttara or Agrabad, not just upazilas.
+function randomLocation(): SeedLocation {
+  const area = pick(builtInAreas);
+  const district = districts.find((d) => d.id === area.districtId);
+  if (!district) throw new Error(`Area ${area.id} has no district`);
+  return {
+    divisionId: district.divisionId,
+    districtId: district.id,
+    areaId: area.id,
+    areaName: area.name,
+  };
 }
 
-function address(upazilaId: string, districtId: string): string {
-  return `House ${between(1, 120)}, ${pick(roads)}, ${zoneName(upazilaId)}, ${zoneName(districtId)}`;
+function address(location: SeedLocation): string {
+  return `House ${between(1, 120)}, ${pick(roads)}, ${location.areaName}, ${zoneName(location.districtId)}`;
 }
 
-function sampleDonor(phones: Set<string>, nids: Set<string>): DonorInput {
+function sampleDonor(phones: Set<string>, nids: Set<string>): DonorInput & { areaName: string } {
   const gender = weighted<Gender>([
     ['male', 62],
     ['female', 36],
     ['other', 1],
-    ['prefer-not-to-say', 1],
   ]);
   const firstName = pick(gender === 'female' ? femaleNames : maleNames);
   const name = `${firstName} ${pick(familyNames)}`;
@@ -162,10 +169,10 @@ function sampleDonor(phones: Set<string>, nids: Set<string>): DonorInput {
         );
 
   const location = randomLocation();
-  const presentAddress = address(location.upazilaId, location.districtId);
+  const presentAddress = address(location);
   const permanentLocation = Math.random() < 0.5 ? location : randomLocation();
 
-  return donorInput.parse({
+  const donor = donorInput.parse({
     name,
     phone: unique(() => `01${between(3, 9)}${digits(8)}`, phones),
     email:
@@ -178,14 +185,12 @@ function sampleDonor(phones: Set<string>, nids: Set<string>): DonorInput {
     bloodGroup: weighted(bloodGroupWeights),
     ...location,
     presentAddress,
-    permanentAddress:
-      permanentLocation === location
-        ? presentAddress
-        : address(permanentLocation.upazilaId, permanentLocation.districtId),
+    permanentAddress: permanentLocation === location ? presentAddress : address(permanentLocation),
     available: Math.random() < 0.65,
     donationCount,
     lastDonatedAt,
   });
+  return { ...donor, areaName: location.areaName };
 }
 
 await mongoose.connect(env.MONGODB_URI);
@@ -193,7 +198,7 @@ try {
   await DonorModel.init();
   const existing = await DonorModel.find({}, { phone: 1, nidNumber: 1 }).lean();
   const phones = new Set(existing.map((donor) => donor.phone));
-  const nids = new Set(existing.map((donor) => donor.nidNumber));
+  const nids = new Set(existing.flatMap((donor) => (donor.nidNumber ? [donor.nidNumber] : [])));
 
   const donors = Array.from({ length: env.SEED_COUNT }, () => {
     // Registered at some point in the last 8 months, so the monthly chart has data.

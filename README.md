@@ -6,7 +6,7 @@ A mobile-first, bilingual (Bangla/English) platform that connects voluntary bloo
 
 ## Phase 0 app — admin donor register
 
-The first working piece is a simple, admin-only donor register, built ahead of the full plan. The admin signs in with an email and password set in `.env` (no OTP), then adds and edits donors (personal details, contact, location and address, blood group, availability and donation history), and filters the donor list by zone, blood group, availability, name or phone. A dashboard, the first page after signing in, shows donor totals, availability, donors by blood group (blood groups with no available donor are marked in red), by division and in the top 10 districts, the 10 donors with the most donations, and new donors in each of the last 6 months. There is no public sign-up, SMS or file storage yet.
+The first working piece is a simple, admin-only donor register, built ahead of the full plan. The admin signs in with an email and password set in `.env` (no OTP), then adds and edits donors (personal details, contact, location and address, blood group, availability and donation history), and filters the donor list by zone, blood group, availability, name or phone. A dashboard, the first page after signing in, shows donor totals, availability, donors by blood group (blood groups with no available donor are marked in red), by division and in the top 10 districts, the 10 donors with the most donations, and new donors in each of the last 6 months. Admins can also record blood requests: each request suggests matching donors near the hospital, and the admin records each donor's response and donation until the request is fulfilled (see [Blood requests](#blood-requests)). There is no public sign-up, SMS or file storage yet.
 
 Stack: MongoDB, Express 5, React and Node.js, in TypeScript. Node.js runs the server's TypeScript directly, Vite builds the client, and admin sessions are stored in MongoDB.
 
@@ -36,7 +36,7 @@ Stack: MongoDB, Express 5, React and Node.js, in TypeScript. Node.js runs the se
 | `pnpm start` | Runs in production mode: the API also serves `client/dist` |
 | `pnpm db:start` / `pnpm db:stop` | Starts or stops the local MongoDB in `.local/` (port 27027, data in `.local/mongo-data`) |
 | `pnpm db:seed [count]` | Adds `count` (default 500, at most 5000) sample donors with random names, locations, blood groups, availability and donation history to the database in `MONGODB_URI`. It only adds donors; run it on a development database, not on real data |
-| `pnpm locations:import` | Rebuilds `shared/locations.json` from the raw files in `data/locations/` |
+| `pnpm locations:import` | Rebuilds `shared/locations.json` (divisions, districts and built-in areas) from the files in `data/locations/` |
 | `pnpm format` | Formats the code (Biome) |
 | `pnpm lint` | Checks formatting and lint rules (Biome) |
 | `pnpm typecheck` | Type-checks the server and the client |
@@ -67,12 +67,21 @@ All routes are under `/api`. Every route except signing in needs the admin sessi
 | `POST /session` | Signs in with `{ email, password }`; 204, or 401 for wrong details |
 | `GET /session` | Returns `{ email }` of the signed-in admin; 401 if not signed in |
 | `DELETE /session` | Signs out |
-| `GET /donors` | Lists donors, 21 per page. Optional query: `divisionId`, `districtId`, `upazilaId`, `bloodGroup`, `available` (`true`/`false`), `search` (part of a name or phone), `sort`, `page`. `sort` is `name` (A–Z, the default), `newest` (newest registered first), `lastDonation` (most recent donation first; donors who have not donated come last) or `availability` (available first, then by name) |
-| `POST /donors` | Adds a donor: `{ name, phone, email, dateOfBirth, gender, nidNumber, bloodGroup, divisionId, districtId, upazilaId, presentAddress, permanentAddress, available, donationCount, lastDonatedAt }`; 409 if the phone number or NID number is already registered, with the clashing field in `fields` |
+| `GET /donors` | Lists donors, 21 per page. Optional query: `divisionId`, `districtId`, `areaId`, `bloodGroup`, `available` (`true`/`false`), `search` (part of a name or phone), `sort`, `page`. `sort` is `name` (A–Z, the default), `newest` (newest registered first), `lastDonation` (most recent donation first; donors who have not donated come last) or `availability` (available first, then by name) |
+| `POST /donors` | Adds a donor: `{ name, phone, email, dateOfBirth, gender, nidNumber, bloodGroup, divisionId, districtId, areaId, presentAddress, permanentAddress, available, donationCount, lastDonatedAt }`; 409 if the phone number or NID number is already registered, with the clashing field in `fields` |
 | `GET /donors/:id` | Returns one donor |
 | `PUT /donors/:id` | Replaces a donor's details (same body as `POST`) |
 | `PATCH /donors/:id/availability` | Sets availability: `{ available }` |
 | `GET /dashboard` | Donor statistics for the dashboard: totals (registered, available, unavailable, new in the last 30 days), counts by blood group and by division (every one listed, even at 0), the 10 districts with the most donors, the 10 donors with the most donations (`name`, `bloodGroup`, `districtId`, `donationCount`, `lastDonatedAt`; donors with no donations are left out), and new donors per month for the last 6 months, counted in Bangladesh time (`Asia/Dhaka`) |
+| `GET /areas?districtId=…` | Every area / city in the district, built-in and added, sorted by name: `[{ id, districtId, name }]` |
+| `POST /areas` | Adds an area: `{ districtId, name }` (2–60 characters); 201 with the new area. If the district already has an area with that name (ignoring case and extra spaces), returns it with 200 instead |
+| `GET /requests` | Lists blood requests, 20 per page. Query: `status` (`open`, the default; `fulfilled`, `cancelled` or `all`), `search` (part of the code, patient name or contact phone), `page`. Open requests are sorted emergencies first, then by the day needed; others newest first. Each has the counts `agreed` and `donated` |
+| `POST /requests` | Creates a request (see the fields below); it starts open and gets a code such as `RQ-261115-0001` |
+| `GET /requests/:id` | Returns one request with `responses`: each contacted donor, their `status` and when it was recorded |
+| `GET /requests/:id/suggestions` | Suggested donors (see [Blood requests](#blood-requests)), at most 50, with `total`, `checkedOn` and `excluded` counts. Query: `wider=true` also searches other divisions |
+| `PUT /requests/:id/responses/:donorId` | Records a donor's response: `{ status }`, one of `no-answer`, `declined` or `agreed`; 409 if the request is closed or the donor's donation is already recorded |
+| `POST /requests/:id/responses/:donorId/donation` | Records that the donor gave blood: the response becomes `donated`, the donor's `donationCount` goes up by 1 and `lastDonatedAt` becomes today. When the donations reach `unitsRequired`, the request becomes `fulfilled` |
+| `POST /requests/:id/cancel` | Cancels an open request: `{ reason, note }`; `reason` is `arranged-elsewhere`, `no-longer-needed`, `created-by-mistake`, `patient-condition-changed` or `other`; 409 if it is already closed |
 
 Donor fields:
 
@@ -84,7 +93,8 @@ Donor fields:
 | `dateOfBirth` | Yes | `YYYY-MM-DD`; the donor must be 18 or older today (Bangladesh time) and at most 100 |
 | `gender` | Yes | `male`, `female`, `other` or `prefer-not-to-say` |
 | `nidNumber` | Yes | National ID number of 10, 13 or 17 digits; unique |
-| `divisionId`, `districtId`, `upazilaId` | Yes | The upazila must belong to the district, and the district to the division |
+| `divisionId`, `districtId` | Yes | The district must belong to the division |
+| `areaId` | Yes | An area / city in that district (see [Location data](#location-data)). Responses also include its `areaName` |
 | `presentAddress`, `permanentAddress` | Yes | 1–250 characters each |
 | `available` | Yes | `true` or `false` |
 | `donationCount` | Yes | Whole number from 0 to 300 |
@@ -92,13 +102,54 @@ Donor fields:
 
 NID numbers, dates of birth and addresses are shown only on the donor's details and edit pages, not in the donor list or on the dashboard.
 
+### Blood requests
+
+An admin creates a request when a patient needs blood. Requests are open until enough units are donated (then fulfilled) or an admin cancels them with a reason.
+
+| Field | Required | Rules |
+|---|---|---|
+| `patientName` | Yes | 2–100 characters |
+| `bloodGroup` | Yes | One of the 8 groups |
+| `component` | Yes | `whole-blood`, `red-cells`, `platelets-random`, `platelets-apheresis`, `plasma` or `not-sure` |
+| `unitsRequired` | Yes | Whole number from 1 to 10 |
+| `urgency` | Yes | `emergency` or `normal` |
+| `requiredOn` | Yes | `YYYY-MM-DD`, from today to 30 days ahead (Bangladesh time) |
+| `hospitalName` | Yes | 3–150 characters |
+| `divisionId`, `districtId`, `areaId` | Yes | The hospital's location; matching starts from its area. Same rules as for donors |
+| `hospitalAddress`, `ward` | No (`null`) | At most 250 and 50 characters |
+| `reason` | No (`null`) | `surgery`, `accident-trauma`, `childbirth`, `thalassemia`, `cancer`, `dengue`, `anaemia` or `other` |
+| `contactName` | Yes | 2–100 characters |
+| `contactPhone` | Yes | 11-digit Bangladeshi mobile number |
+| `relationship` | Yes | `self`, `family`, `friend`, `hospital-staff`, `volunteer` or `other` |
+| `notes` | No (`null`) | At most 500 characters |
+
+**Suggested donors** follow SRS §4.3, limited to the data the register has. Eligibility is checked on the day the blood is needed (or today, once that day has passed). A donor is suggested only if all of these hold:
+
+- the same blood group as the request (exact match; the hospital decides compatibility);
+- marked available;
+- aged 18–60 on that day;
+- their last donation was at least 120 days before that day, or they have not donated. Donation types are not recorded yet, so every donation counts as whole blood; 120 days is the SRS placeholder that the Medical Advisor must confirm;
+- not the request's contact person (same phone number);
+- not agreed to give for another open request without having donated yet;
+- not already contacted for this request (they are listed with their response instead).
+
+They are grouped by distance from the hospital: same area / city, same district, same division and, with `wider=true`, other divisions. Within each group, the donor who donated longest ago (or never) comes first. The response also counts the donors of that blood group in the searched area who were left out, by reason.
+
+Recording a donation updates the request and then the donor in two separate writes, because the local MongoDB runs as a single server without transactions. If the second write fails, the error is shown and the donor's count must be corrected on the donor's edit page.
+
 ### Location data
 
-`shared/locations.json` holds all 8 divisions, 64 districts and 495 upazilas. The server uses it to check donor locations, and the web app uses it for the location pickers. It is generated by `pnpm locations:import`; do not edit it by hand.
+A place is a division, a district and an **area / city** in that district. Areas come from three sources, and the area picker searches all of them:
 
-- **Source:** `data/locations/` holds `divisions.json`, `districts.json` and `upazilas.json` from the [bangladesh-geocode](https://github.com/nuhil/bangladesh-geocode) dataset, unchanged. To update, download newer copies of the three files from the repository's `divisions/`, `districts/` and `upazilas/` folders, then run `pnpm locations:import`.
-- **IDs:** each zone is identified by its official BBS geocode (for example `BD30` Dhaka division, `BD2019` Cumilla district), and donors store these codes. The codes stay the same across dataset releases.
-- **Checks:** the import fails if a file is malformed, a code is duplicated, or a district or upazila points to a missing parent.
+- **Upazilas:** all 495 official upazilas.
+- **Popular areas:** well-known city areas that are not upazilas, such as Uttara, Gulshan or Dhanmondi in Dhaka, Agrabad in Chattogram or Zindabazar in Sylhet. They are listed by district in `data/locations/popular-areas.json`, which we maintain; add names there and run `pnpm locations:import`.
+- **Added by admins:** when an area is not in the list, the picker offers to add it to the district. Added areas are stored in the database (`areas` collection) and are available to everyone from then on. Names are unique within a district, ignoring case and extra spaces, so adding an existing name returns the existing area.
+
+`shared/locations.json` holds the 8 divisions, 64 districts and the built-in areas (upazilas and popular areas). The server uses it to check locations, and the web app uses it for the pickers. It is generated by `pnpm locations:import`; do not edit it by hand.
+
+- **Source:** `data/locations/` holds `divisions.json`, `districts.json` and `upazilas.json` from the [bangladesh-geocode](https://github.com/nuhil/bangladesh-geocode) dataset, unchanged, and our `popular-areas.json`. To update the official files, download newer copies from the repository's `divisions/`, `districts/` and `upazilas/` folders, then run `pnpm locations:import`.
+- **IDs:** divisions, districts and upazila areas use their official BBS geocode (for example `BD30` Dhaka division, `BD2019` Cumilla district), which stays the same across dataset releases. Popular areas use the district code and the name, e.g. `BD3026-uttara`; added areas use a database ID. Donors and requests store the area ID together with its name.
+- **Checks:** the import fails if a file is malformed, a code is duplicated, a district or upazila points to a missing parent, `popular-areas.json` names an unknown district, or an area name appears twice in a district.
 
 ## Documents
 

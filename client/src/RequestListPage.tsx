@@ -81,11 +81,13 @@ export function RequestListPage() {
             </button>
           ))}
         </div>
-        <SearchBox
-          label="Search by code, patient or contact phone"
-          value={search}
-          onChange={setSearch}
-        />
+        <div className="request-search">
+          <SearchBox
+            label="Search by code, patient or contact phone"
+            value={search}
+            onChange={setSearch}
+          />
+        </div>
       </section>
 
       <RequestResults state={state} onPage={(page) => setFilters({ page: String(page) })} />

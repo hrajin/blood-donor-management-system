@@ -1,69 +1,68 @@
-import { districtsOf, divisions, type Location, upazilasOf } from '../../shared/locations.ts';
+import { useId } from 'react';
+import { districtsOf, divisions, type Location } from '../../shared/locations.ts';
+import { AreaPicker } from './AreaPicker.tsx';
+import { SearchSelect } from './SearchSelect.tsx';
 
 type Props = {
   value: Location;
   onChange: (value: Location) => void;
-  emptyLabel: string;
-  required?: boolean;
+  /**
+   * `filter`: "All …" choices, no adding. `required`: every level must be chosen (requests).
+   * `optional`: each level can be left as "Not given" (donors). Forms let the admin add areas.
+   */
+  mode: 'filter' | 'required' | 'optional';
   error?: string | undefined;
 };
 
-export function LocationSelect({ value, onChange, emptyLabel, required = false, error }: Props) {
+export function LocationSelect({ value, onChange, mode, error }: Props) {
+  const divisionId = useId();
+  const districtId = useId();
+  const areaId = useId();
+  const filter = mode === 'filter';
+  const invalid = Boolean(error);
+  const emptyLabel = (all: string) =>
+    mode === 'filter' ? all : mode === 'optional' ? 'Not given' : undefined;
+
   return (
     <fieldset className="location">
       <legend>Location</legend>
-      <label>
-        Division
-        <select
+      <div className="field">
+        <label htmlFor={divisionId}>Division</label>
+        <SearchSelect
+          inputId={divisionId}
+          options={divisions}
           value={value.divisionId}
-          required={required}
-          onChange={(event) =>
-            onChange({ divisionId: event.target.value, districtId: '', upazilaId: '' })
-          }
-        >
-          <option value="">{emptyLabel}</option>
-          {divisions.map((division) => (
-            <option key={division.id} value={division.id}>
-              {division.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        District
-        <select
+          placeholder="Search or choose a division"
+          emptyLabel={emptyLabel('All divisions')}
+          invalid={invalid && mode === 'required' && !value.divisionId}
+          onChange={(id) => onChange({ divisionId: id, districtId: '', areaId: '' })}
+        />
+      </div>
+      <div className="field">
+        <label htmlFor={districtId}>District</label>
+        <SearchSelect
+          inputId={districtId}
+          options={districtsOf(value.divisionId)}
           value={value.districtId}
-          required={required}
+          placeholder={value.divisionId ? 'Search or choose a district' : 'Choose a division first'}
+          emptyLabel={value.divisionId ? emptyLabel('All districts') : undefined}
           disabled={!value.divisionId}
-          onChange={(event) =>
-            onChange({ ...value, districtId: event.target.value, upazilaId: '' })
-          }
-        >
-          <option value="">{emptyLabel}</option>
-          {districtsOf(value.divisionId).map((district) => (
-            <option key={district.id} value={district.id}>
-              {district.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        Upazila
-        <select
-          value={value.upazilaId}
-          required={required}
-          disabled={!value.districtId}
-          aria-invalid={error ? true : undefined}
-          onChange={(event) => onChange({ ...value, upazilaId: event.target.value })}
-        >
-          <option value="">{emptyLabel}</option>
-          {upazilasOf(value.districtId).map((upazila) => (
-            <option key={upazila.id} value={upazila.id}>
-              {upazila.name}
-            </option>
-          ))}
-        </select>
-      </label>
+          invalid={invalid && mode === 'required' && !value.districtId}
+          onChange={(id) => onChange({ ...value, districtId: id, areaId: '' })}
+        />
+      </div>
+      <div className="field">
+        <label htmlFor={areaId}>Area / City</label>
+        <AreaPicker
+          inputId={areaId}
+          districtId={value.districtId}
+          value={value.areaId}
+          allowCreate={!filter}
+          emptyLabel={emptyLabel('All areas')}
+          invalid={invalid}
+          onChange={(id) => onChange({ ...value, areaId: id })}
+        />
+      </div>
       {error && <p className="field-error">{error}</p>}
     </fieldset>
   );

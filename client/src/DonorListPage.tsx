@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import {
   bloodGroups,
@@ -7,7 +7,7 @@ import {
   type DonorSort,
   donorSorts,
 } from '../../shared/donor.ts';
-import { zoneName } from '../../shared/locations.ts';
+import { placeName, zoneName } from '../../shared/locations.ts';
 import { AvailabilitySwitch } from './AvailabilitySwitch.tsx';
 import { ApiError, listDonors, setAvailability } from './api.ts';
 import { Breadcrumbs } from './Breadcrumbs.tsx';
@@ -15,6 +15,7 @@ import { formatDay } from './calendar-format.ts';
 import { initials } from './donor-initials.ts';
 import { LocationSelect } from './LocationSelect.tsx';
 import { SearchBox } from './SearchBox.tsx';
+import { optionsOf, SearchSelect } from './SearchSelect.tsx';
 import { useToast } from './Toaster.tsx';
 import { useSearchInput, withFilters } from './url-filters.ts';
 
@@ -23,7 +24,7 @@ type ListState =
   | { status: 'failed'; message: string }
   | { status: 'loaded'; page: DonorPage };
 
-const filterKeys = ['divisionId', 'districtId', 'upazilaId', 'bloodGroup', 'available', 'search'];
+const filterKeys = ['divisionId', 'districtId', 'areaId', 'bloodGroup', 'available', 'search'];
 
 const sortLabels: Record<DonorSort, string> = {
   name: 'Name (A–Z)',
@@ -44,6 +45,7 @@ export function DonorListPage() {
   const [search, setSearch] = useSearchInput(searchParams, setSearchParams);
   const [rowError, setRowError] = useState('');
   const showToast = useToast();
+  const sortId = useId();
   const [pendingIds, setPendingIds] = useState<ReadonlySet<string>>(new Set());
 
   useEffect(() => {
@@ -147,11 +149,11 @@ export function DonorListPage() {
 
         <div className="filter-bottom">
           <LocationSelect
-            emptyLabel="All"
+            mode="filter"
             value={{
               divisionId: searchParams.get('divisionId') ?? '',
               districtId: searchParams.get('districtId') ?? '',
-              upazilaId: searchParams.get('upazilaId') ?? '',
+              areaId: searchParams.get('areaId') ?? '',
             }}
             onChange={(location) => setFilters(location)}
           />
@@ -190,21 +192,17 @@ export function DonorListPage() {
 
       <div className="results-bar">
         <p className="result-count">{shown && shown.total > 0 && <ResultCount page={shown} />}</p>
-        <label className="sort-select">
-          Sort by
-          <select
+        <div className="sort-select">
+          <label htmlFor={sortId}>Sort by</label>
+          <SearchSelect
+            inputId={sortId}
+            searchable={false}
+            options={optionsOf(donorSorts, sortLabels)}
             value={searchParams.get('sort') ?? 'name'}
-            onChange={(event) =>
-              setFilters({ sort: event.target.value === 'name' ? '' : event.target.value })
-            }
-          >
-            {donorSorts.map((sort) => (
-              <option key={sort} value={sort}>
-                {sortLabels[sort]}
-              </option>
-            ))}
-          </select>
-        </label>
+            placeholder="Name (A–Z)"
+            onChange={(sort) => setFilters({ sort: sort === 'name' ? '' : sort })}
+          />
+        </div>
       </div>
 
       {rowError && (
@@ -337,8 +335,16 @@ function DonorGrid({ page: result, busy, pendingIds, onToggle, onPage }: GridPro
               <div>
                 <dt>Location</dt>
                 <dd>
-                  {zoneName(donor.upazilaId)}, {zoneName(donor.districtId)}
-                  <span className="muted"> · {zoneName(donor.divisionId)}</span>
+                  {donor.districtId ? (
+                    <>
+                      {placeName(donor)}
+                      {donor.divisionId && (
+                        <span className="muted"> · {zoneName(donor.divisionId)}</span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="muted">{placeName(donor)}</span>
+                  )}
                 </dd>
               </div>
               <div>
