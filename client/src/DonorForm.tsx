@@ -159,7 +159,7 @@ export function DonorForm({ donorId: id, onSaved, onCancel }: DonorFormProps) {
         hint="All you need to add a donor. Everything below is optional and can be filled in later."
       >
         <div className="form-row">
-          <Field label="Full name" error={errors.name}>
+          <Field label="Full name" required error={errors.name}>
             {(fieldId) => (
               <input
                 id={fieldId}
@@ -171,7 +171,7 @@ export function DonorForm({ donorId: id, onSaved, onCancel }: DonorFormProps) {
               />
             )}
           </Field>
-          <Field label="Mobile number" error={errors.phone}>
+          <Field label="Mobile number" required error={errors.phone}>
             {(fieldId) => (
               <input
                 id={fieldId}
@@ -187,6 +187,7 @@ export function DonorForm({ donorId: id, onSaved, onCancel }: DonorFormProps) {
         </div>
         <ChoiceGroup
           legend="Blood group"
+          required
           className="blood-choices"
           options={bloodGroups.map((group) => ({ value: group, label: group }))}
           value={values.bloodGroup}
@@ -201,7 +202,7 @@ export function DonorForm({ donorId: id, onSaved, onCancel }: DonorFormProps) {
         hint="Optional. With a date of birth, donors outside ages 18–60 are not suggested."
       >
         <div className="form-row">
-          <Field label="Date of birth (optional)" error={errors.dateOfBirth}>
+          <Field label="Date of birth" error={errors.dateOfBirth}>
             {(fieldId) => (
               <input
                 id={fieldId}
@@ -213,7 +214,7 @@ export function DonorForm({ donorId: id, onSaved, onCancel }: DonorFormProps) {
               />
             )}
           </Field>
-          <Field label="NID number (optional)" error={errors.nidNumber}>
+          <Field label="NID number" error={errors.nidNumber}>
             {(fieldId) => (
               <input
                 id={fieldId}
@@ -229,7 +230,7 @@ export function DonorForm({ donorId: id, onSaved, onCancel }: DonorFormProps) {
         </div>
         <div className="form-row">
           <ChoiceGroup
-            legend="Gender (optional)"
+            legend="Gender"
             options={[
               ...genders.map((gender) => ({ value: gender, label: genderLabels[gender] })),
               { value: '', label: 'Not given' },
@@ -238,7 +239,7 @@ export function DonorForm({ donorId: id, onSaved, onCancel }: DonorFormProps) {
             error={errors.gender}
             onChange={(gender) => change({ gender })}
           />
-          <Field label="Email (optional)" error={errors.email}>
+          <Field label="Email" error={errors.email}>
             {(fieldId) => (
               <input
                 id={fieldId}
@@ -264,7 +265,7 @@ export function DonorForm({ donorId: id, onSaved, onCancel }: DonorFormProps) {
           error={errors.areaId ?? errors.districtId ?? errors.divisionId}
           onChange={(location) => change(location)}
         />
-        <Field label="Present address (optional)" error={errors.presentAddress}>
+        <Field label="Present address" error={errors.presentAddress}>
           {(fieldId) => (
             <textarea
               id={fieldId}
@@ -285,7 +286,7 @@ export function DonorForm({ donorId: id, onSaved, onCancel }: DonorFormProps) {
           Permanent address is the same as present address
         </label>
         {!values.sameAddress && (
-          <Field label="Permanent address (optional)" error={errors.permanentAddress}>
+          <Field label="Permanent address" error={errors.permanentAddress}>
             {(fieldId) => (
               <textarea
                 id={fieldId}

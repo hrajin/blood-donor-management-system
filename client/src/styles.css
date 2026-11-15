@@ -485,6 +485,16 @@ button:disabled {
   border: 0;
 }
 
+/* A block, not the shared flex column, so the star stays on the label's line. */
+.field > label {
+  display: block;
+}
+
+.required-mark {
+  margin-left: 2px;
+  color: var(--red);
+}
+
 .choice-legend {
   margin-bottom: 8px;
   padding: 0;
@@ -864,6 +874,30 @@ button.availability-switch[aria-checked="true"] .switch-track::after {
   caret-color: transparent;
   cursor: pointer;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23595959' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+/* The clear button takes the place of the search or chevron icon. */
+.combobox-search.has-clear,
+.combobox-plain.has-clear {
+  background-image: none;
+}
+
+.combobox-clear {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  min-height: 0;
+  padding: 0;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 50%;
+  background:
+    transparent
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23595959' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 6l12 12M18 6 6 18'/%3E%3C/svg%3E")
+    center / 14px no-repeat;
+  cursor: pointer;
 }
 
 .combobox input::placeholder {
@@ -1372,9 +1406,25 @@ button.availability-switch[aria-checked="true"] .switch-track::after {
 }
 
 @media (max-width: 560px) {
+  .request-toolbar .segmented,
+  .request-search {
+    flex-basis: 100%;
+    min-width: 0;
+  }
+
   .request-row {
     grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: 12px;
     padding: 14px;
+  }
+
+  /* On a narrow screen the code, component and hospital wrap instead of being cut off. */
+  .request-main .muted {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   .request-row .request-when {
@@ -1382,6 +1432,8 @@ button.availability-switch[aria-checked="true"] .switch-track::after {
     flex-direction: row;
     gap: 8px;
     align-items: baseline;
+    padding-top: 10px;
+    border-top: 1px solid var(--grey-200);
   }
 
   .request-hero {

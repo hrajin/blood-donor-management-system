@@ -1,12 +1,29 @@
 import { type ReactNode, useId } from 'react';
 
-type FieldProps = { label: string; error?: string; children: (id: string) => ReactNode };
+type FieldProps = {
+  label: string;
+  required?: boolean;
+  error?: string;
+  children: (id: string) => ReactNode;
+};
 
-export function Field({ label, error, children }: FieldProps) {
+/** A red star for required fields; screen readers get the requirement from the field itself. */
+function RequiredMark() {
+  return (
+    <span className="required-mark" aria-hidden="true">
+      *
+    </span>
+  );
+}
+
+export function Field({ label, required, error, children }: FieldProps) {
   const id = useId();
   return (
     <div className="field">
-      <label htmlFor={id}>{label}</label>
+      <label htmlFor={id}>
+        {label}
+        {required && <RequiredMark />}
+      </label>
       {children(id)}
       {error && <span className="field-error">{error}</span>}
     </div>
@@ -35,6 +52,7 @@ export function FormSection({ number, title, hint, children }: FormSectionProps)
 
 type ChoiceGroupProps = {
   legend: string;
+  required?: boolean;
   options: { value: string; label: string }[];
   value: string;
   error?: string | undefined;
@@ -44,6 +62,7 @@ type ChoiceGroupProps = {
 
 export function ChoiceGroup({
   legend,
+  required,
   options,
   value,
   error,
@@ -53,7 +72,10 @@ export function ChoiceGroup({
   const name = useId();
   return (
     <fieldset className={className ? `choice-group ${className}` : 'choice-group'}>
-      <legend className="choice-legend">{legend}</legend>
+      <legend className="choice-legend">
+        {legend}
+        {required && <RequiredMark />}
+      </legend>
       <div className="choices">
         {options.map((option) => (
           <label key={option.value} className="choice">

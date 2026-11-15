@@ -19,6 +19,7 @@ import { fieldErrors } from '../../shared/field-errors.ts';
 import { ApiError, createRequest } from './api.ts';
 import { Breadcrumbs } from './Breadcrumbs.tsx';
 import { ChoiceGroup, Field, FormSection } from './form-parts.tsx';
+import { HospitalPicker } from './HospitalPicker.tsx';
 import { LocationSelect } from './LocationSelect.tsx';
 import { optionsOf, SearchSelect } from './SearchSelect.tsx';
 import { useToast } from './Toaster.tsx';
@@ -31,6 +32,8 @@ type FormValues = {
   urgency: string;
   requiredOn: string;
   hospitalName: string;
+  /** The ID of the hospital picked from the list; empty for a typed name. */
+  hospitalId: string;
   hospitalAddress: string;
   ward: string;
   divisionId: string;
@@ -52,6 +55,7 @@ function emptyForm(today: string): FormValues {
     urgency: 'normal',
     requiredOn: today,
     hospitalName: '',
+    hospitalId: '',
     hospitalAddress: '',
     ward: '',
     divisionId: '',
@@ -65,15 +69,22 @@ function emptyForm(today: string): FormValues {
   };
 }
 
+const orNull = (value: string) => value.trim() || null;
+
 function toInput(values: FormValues) {
   return {
     ...values,
+    hospitalName: orNull(values.hospitalName),
+    divisionId: orNull(values.divisionId),
+    districtId: orNull(values.districtId),
+    areaId: orNull(values.areaId),
+    relationship: orNull(values.relationship),
     // An empty field must fail validation, not become 0.
     unitsRequired: values.unitsRequired === '' ? Number.NaN : Number(values.unitsRequired),
-    hospitalAddress: values.hospitalAddress.trim() || null,
-    ward: values.ward.trim() || null,
-    reason: values.reason || null,
-    notes: values.notes.trim() || null,
+    hospitalAddress: orNull(values.hospitalAddress),
+    ward: orNull(values.ward),
+    reason: orNull(values.reason),
+    notes: orNull(values.notes),
   };
 }
 
@@ -141,8 +152,12 @@ export function RequestFormPage() {
           </p>
         )}
 
-        <FormSection number={1} title="Patient and blood" hint="What the hospital has asked for.">
-          <Field label="Patient’s name" error={errors.patientName}>
+        <FormSection
+          number={1}
+          title="Patient and blood"
+          hint="The patient’s name and the blood group are all you need here. The rest can be filled in later."
+        >
+          <Field label="Patient’s name" required error={errors.patientName}>
             {(id) => (
               <input
                 id={id}
@@ -155,6 +170,7 @@ export function RequestFormPage() {
           </Field>
           <ChoiceGroup
             legend="Blood group"
+            required
             className="blood-choices"
             options={bloodGroups.map((group) => ({ value: group, label: group }))}
             value={values.bloodGroup}
@@ -216,15 +232,15 @@ export function RequestFormPage() {
               )}
             </Field>
           </div>
-          <Field label="Reason (optional)" error={errors.reason}>
+          <Field label="Reason" error={errors.reason}>
             {(id) => (
               <SearchSelect
                 inputId={id}
                 searchable={false}
                 options={optionsOf(requestReasons, requestReasonLabels)}
                 value={values.reason}
-                placeholder="Not given"
-                emptyLabel="Not given"
+                placeholder="Choose…"
+                clearable
                 onChange={(reason) => change({ reason })}
               />
             )}
@@ -234,27 +250,26 @@ export function RequestFormPage() {
         <FormSection
           number={2}
           title="Hospital"
-          hint="Its area / city is where the search for donors starts."
+          hint="Choosing a hospital fills in its location; a hospital that is not in the list can be added. The more of the location you give, the closer the suggested donors."
         >
           <Field label="Hospital name" error={errors.hospitalName}>
             {(id) => (
-              <input
-                id={id}
-                placeholder="e.g. Dhaka Medical College Hospital"
-                value={values.hospitalName}
-                aria-invalid={invalid('hospitalName')}
-                onChange={(event) => change({ hospitalName: event.target.value })}
+              <HospitalPicker
+                inputId={id}
+                hospitalId={values.hospitalId}
+                location={values}
+                onChange={change}
               />
             )}
           </Field>
           <LocationSelect
-            mode="required"
+            mode="optional"
             value={values}
-            error={errors.areaId ?? errors.districtId}
+            error={errors.areaId ?? errors.districtId ?? errors.divisionId}
             onChange={(location) => change(location)}
           />
           <div className="form-row">
-            <Field label="Address (optional)" error={errors.hospitalAddress}>
+            <Field label="Address" error={errors.hospitalAddress}>
               {(id) => (
                 <input
                   id={id}
@@ -264,7 +279,7 @@ export function RequestFormPage() {
                 />
               )}
             </Field>
-            <Field label="Ward, bed or cabin (optional)" error={errors.ward}>
+            <Field label="Ward, bed or cabin" error={errors.ward}>
               {(id) => (
                 <input
                   id={id}
@@ -280,10 +295,10 @@ export function RequestFormPage() {
         <FormSection
           number={3}
           title="Contact person"
-          hint="Who donors and admins should call about this request."
+          hint="Who donors and admins should call about this request. The name and mobile number are required."
         >
           <div className="form-row">
-            <Field label="Name" error={errors.contactName}>
+            <Field label="Name" required error={errors.contactName}>
               {(id) => (
                 <input
                   id={id}
@@ -293,7 +308,7 @@ export function RequestFormPage() {
                 />
               )}
             </Field>
-            <Field label="Mobile number" error={errors.contactPhone}>
+            <Field label="Mobile number" required error={errors.contactPhone}>
               {(id) => (
                 <input
                   id={id}
@@ -315,12 +330,13 @@ export function RequestFormPage() {
                 options={optionsOf(relationships, relationshipLabels)}
                 value={values.relationship}
                 placeholder="Choose…"
+                clearable
                 invalid={Boolean(errors.relationship)}
                 onChange={(relationship) => change({ relationship })}
               />
             )}
           </Field>
-          <Field label="Notes (optional)" error={errors.notes}>
+          <Field label="Notes" error={errors.notes}>
             {(id) => (
               <textarea
                 id={id}

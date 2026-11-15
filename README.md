@@ -37,6 +37,7 @@ Stack: MongoDB, Express 5, React and Node.js, in TypeScript. Node.js runs the se
 | `pnpm db:start` / `pnpm db:stop` | Starts or stops the local MongoDB in `.local/` (port 27027, data in `.local/mongo-data`) |
 | `pnpm db:seed [count]` | Adds `count` (default 500, at most 5000) sample donors with random names, locations, blood groups, availability and donation history to the database in `MONGODB_URI`. It only adds donors; run it on a development database, not on real data |
 | `pnpm locations:import` | Rebuilds `shared/locations.json` (divisions, districts and built-in areas) from the files in `data/locations/` |
+| `pnpm hospitals:import <file>` | Rebuilds `shared/hospitals.json` (the hospital list) from a downloaded `health_facilities.geojson`; see [Hospital data](#hospital-data) |
 | `pnpm format` | Formats the code (Biome) |
 | `pnpm lint` | Checks formatting and lint rules (Biome) |
 | `pnpm typecheck` | Type-checks the server and the client |
@@ -71,9 +72,11 @@ All routes are under `/api`. Every route except signing in needs the admin sessi
 | `POST /donors` | Adds a donor: `{ name, phone, email, dateOfBirth, gender, nidNumber, bloodGroup, divisionId, districtId, areaId, presentAddress, permanentAddress, available, donationCount, lastDonatedAt }`; 409 if the phone number or NID number is already registered, with the clashing field in `fields` |
 | `GET /donors/:id` | Returns one donor |
 | `PUT /donors/:id` | Replaces a donor's details (same body as `POST`) |
-| `PATCH /donors/:id/availability` | Sets availability: `{ available }` |
+| `PATCH /donors/:id/availability` | Sets availability: `{ available }`. Turning it on also cancels an automatic rest |
 | `GET /dashboard` | Donor statistics for the dashboard: totals (registered, available, unavailable, new in the last 30 days), counts by blood group and by division (every one listed, even at 0), the 10 districts with the most donors, the 10 donors with the most donations (`name`, `bloodGroup`, `districtId`, `donationCount`, `lastDonatedAt`; donors with no donations are left out), and new donors per month for the last 6 months, counted in Bangladesh time (`Asia/Dhaka`) |
 | `GET /areas?districtId=…` | Every area / city in the district, built-in and added, sorted by name: `[{ id, districtId, name }]` |
+| `GET /hospitals` | The hospitals admins added (the built-in list is in the web app): `[{ id, name, divisionId, districtId, areaId }]` |
+| `POST /hospitals` | Adds a hospital: `{ name, divisionId, districtId, areaId }` (name 3–150 characters; the location is optional, with the same rules as for donors); 201 with the new hospital. If the district already has a hospital with that name (ignoring case and extra spaces), or a built-in one does, returns it with 200 instead |
 | `POST /areas` | Adds an area: `{ districtId, name }` (2–60 characters); 201 with the new area. If the district already has an area with that name (ignoring case and extra spaces), returns it with 200 instead |
 | `GET /requests` | Lists blood requests, 20 per page. Query: `status` (`open`, the default; `fulfilled`, `cancelled` or `all`), `search` (part of the code, patient name or contact phone), `page`. Open requests are sorted emergencies first, then by the day needed; others newest first. Each has the counts `agreed` and `donated` |
 | `POST /requests` | Creates a request (see the fields below); it starts open and gets a code such as `RQ-261115-0001` |
@@ -90,13 +93,12 @@ Donor fields:
 | `name` | Yes | 1–100 characters |
 | `phone` | Yes | 11-digit Bangladeshi mobile number (`01[3-9]` followed by 8 digits); unique |
 | `email` | No (`null`) | A valid email address, at most 254 characters |
-| `dateOfBirth` | Yes | `YYYY-MM-DD`; the donor must be 18 or older today (Bangladesh time) and at most 100 |
-| `gender` | Yes | `male`, `female`, `other` or `prefer-not-to-say` |
-| `nidNumber` | Yes | National ID number of 10, 13 or 17 digits; unique |
-| `divisionId`, `districtId` | Yes | The district must belong to the division |
-| `areaId` | Yes | An area / city in that district (see [Location data](#location-data)). Responses also include its `areaName` |
-| `presentAddress`, `permanentAddress` | Yes | 1–250 characters each |
-| `available` | Yes | `true` or `false` |
+| `dateOfBirth` | No (`null`) | `YYYY-MM-DD`; the donor must be 16 or older today (Bangladesh time) and at most 100 |
+| `gender` | No (`null`) | `male`, `female` or `other` |
+| `nidNumber` | No (`null`) | National ID number of 10, 13 or 17 digits; unique when given |
+| `divisionId`, `districtId`, `areaId` | No (`null`) | The location may stop at any level. A district needs its division, an area needs its district, and the district must belong to the division. Areas are listed under [Location data](#location-data); responses also include `areaName` |
+| `presentAddress`, `permanentAddress` | No (`null`) | 1–250 characters each |
+| `available` | Yes | `true` or `false`. Recording a donation sets it to `false` and `availableAgainOn` (in responses; not sent) to 3 months later; the API sets it back to `true` on that day, checked at start-up and then every hour. Marking the donor available by hand cancels the rest |
 | `donationCount` | Yes | Whole number from 0 to 300 |
 | `lastDonatedAt` | If `donationCount` > 0 | `YYYY-MM-DD`, not in the future and on or after the donor's 16th birthday; must be `null` when `donationCount` is 0 |
 
@@ -104,23 +106,23 @@ NID numbers, dates of birth and addresses are shown only on the donor's details 
 
 ### Blood requests
 
-An admin creates a request when a patient needs blood. Requests are open until enough units are donated (then fulfilled) or an admin cancels them with a reason.
+An admin creates a request when a patient needs blood. Only the patient's name, the blood group and the contact person's name and mobile number have to be given; the other fields are optional. Requests are open until enough units are donated (then fulfilled) or an admin cancels them with a reason.
 
 | Field | Required | Rules |
 |---|---|---|
 | `patientName` | Yes | 2–100 characters |
 | `bloodGroup` | Yes | One of the 8 groups |
-| `component` | Yes | `whole-blood`, `red-cells`, `platelets-random`, `platelets-apheresis`, `plasma` or `not-sure` |
-| `unitsRequired` | Yes | Whole number from 1 to 10 |
-| `urgency` | Yes | `emergency` or `normal` |
-| `requiredOn` | Yes | `YYYY-MM-DD`, from today to 30 days ahead (Bangladesh time) |
-| `hospitalName` | Yes | 3–150 characters |
-| `divisionId`, `districtId`, `areaId` | Yes | The hospital's location; matching starts from its area. Same rules as for donors |
+| `component` | Yes (the form starts at `whole-blood`) | `whole-blood`, `red-cells`, `platelets-random`, `platelets-apheresis`, `plasma` or `not-sure` |
+| `unitsRequired` | Yes (the form starts at 1) | Whole number from 1 to 10 |
+| `urgency` | Yes (the form starts at `normal`) | `emergency` or `normal` |
+| `requiredOn` | Yes (the form starts at today) | `YYYY-MM-DD`, from today to 30 days ahead (Bangladesh time) |
+| `hospitalName` | No (`null`) | 3–150 characters. The form lets the admin pick it from the [hospital list](#hospital-data), which also fills in the location, or type a name that is not in the list |
+| `divisionId`, `districtId`, `areaId` | No (`null`) | The hospital's location; matching starts from its most precise level. Same rules as for donors |
 | `hospitalAddress`, `ward` | No (`null`) | At most 250 and 50 characters |
 | `reason` | No (`null`) | `surgery`, `accident-trauma`, `childbirth`, `thalassemia`, `cancer`, `dengue`, `anaemia` or `other` |
 | `contactName` | Yes | 2–100 characters |
 | `contactPhone` | Yes | 11-digit Bangladeshi mobile number |
-| `relationship` | Yes | `self`, `family`, `friend`, `hospital-staff`, `volunteer` or `other` |
+| `relationship` | No (`null`) | `self`, `family`, `friend`, `hospital-staff`, `volunteer` or `other` |
 | `notes` | No (`null`) | At most 500 characters |
 
 **Suggested donors** follow SRS §4.3, limited to the data the register has. Eligibility is checked on the day the blood is needed (or today, once that day has passed). A donor is suggested only if all of these hold:
@@ -133,9 +135,20 @@ An admin creates a request when a patient needs blood. Requests are open until e
 - not agreed to give for another open request without having donated yet;
 - not already contacted for this request (they are listed with their response instead).
 
-They are grouped by distance from the hospital: same area / city, same district, same division and, with `wider=true`, other divisions. Within each group, the donor who donated longest ago (or never) comes first. The response also counts the donors of that blood group in the searched area who were left out, by reason.
+They are grouped by distance from the hospital: same area / city, same district, same division and, with `wider=true`, other divisions. Donors whose division is not recorded come last. When the request has no division, every donor of the blood group is suggested, all in that last group. Within each group, the donor who donated longest ago (or never) comes first. The response also counts the donors of that blood group in the searched area who were left out, by reason.
 
 Recording a donation updates the request and then the donor in two separate writes, because the local MongoDB runs as a single server without transactions. If the second write fails, the error is shown and the donor's count must be corrected on the donor's edit page.
+
+### Hospital data
+
+The new-request form searches a list of hospitals, shown with their district. Choosing one fills in the hospital's division, district and (when known) area / city; the list narrows to the district or division already chosen. The list has two parts:
+
+- **Built-in:** about 1,750 hospitals in `shared/hospitals.json`, from OpenStreetMap plus our own list of well-known hospitals (`data/hospitals/common-hospitals.json`, by district name; add names there and run the import again).
+- **Added by admins:** when a hospital is not in the list, the picker offers to add the typed name, with the location chosen on the form at that time (any part of it may be empty). Added hospitals are stored in the database (`hospitals` collection) and are offered to everyone from then on. Names are unique within a district, ignoring case and extra spaces, so adding an existing name returns the existing hospital.
+
+- **Source:** the OpenStreetMap health-facility export for Bangladesh from the [Humanitarian OpenStreetMap Team](https://data.humdata.org/dataset/hotosm_bgd_health_facilities), under the [Open Database Licence](https://opendatacommons.org/licenses/odbl/). Contains information © OpenStreetMap contributors.
+- **Quality:** OpenStreetMap is edited by volunteers, so the list is not an official register and some hospitals are missing or have imperfect names. The import keeps only features tagged as hospitals, with an English name that looks like a hospital's, and drops pharmacies, dental clinics, community clinics and test entries.
+- **Updating the built-in list:** download and unzip `hotosm_bgd_health_facilities_osm_geojson.zip` from that page, then run `pnpm hospitals:import path/to/health_facilities.geojson`. `shared/hospitals.json` is generated; do not edit it by hand.
 
 ### Location data
 

@@ -4,12 +4,12 @@ import { bangladeshDate } from '../../shared/bangladesh-time.ts';
 import {
   type BloodRequestSummary,
   componentLabels,
+  hospitalPlace,
   type RequestPage,
   type RequestStatus,
   requestStatuses,
   requestStatusLabels,
 } from '../../shared/blood-request.ts';
-import { zoneName } from '../../shared/locations.ts';
 import { ApiError, listRequests } from './api.ts';
 import { Breadcrumbs } from './Breadcrumbs.tsx';
 import { formatDay, relativeDay } from './calendar-format.ts';
@@ -194,8 +194,7 @@ function RequestRow({ request, today }: { request: BloodRequestSummary; today: s
           </span>
         </div>
         <p className="muted">
-          {request.code} · {componentLabels[request.component]} · {request.hospitalName},{' '}
-          {zoneName(request.districtId)}
+          {[request.code, componentLabels[request.component], hospitalPlace(request)].join(' · ')}
         </p>
       </div>
       <div className="request-when">

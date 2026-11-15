@@ -26,6 +26,8 @@ type Props = {
   placeholder: string;
   /** The empty choice, e.g. "All districts" in filters; without it, there is none. */
   emptyLabel?: string | undefined;
+  /** Shows a button that removes the chosen value, for fields that may stay empty. */
+  clearable?: boolean;
   /** Without it, names that are not in the list cannot be added. */
   create?: CreateOption | undefined;
   /** Short lists turn typing off and only open the list; it looks and works the same otherwise. */
@@ -58,6 +60,7 @@ export function SearchSelect({
   onChange,
   placeholder,
   emptyLabel,
+  clearable = false,
   create,
   searchable = true,
   disabled = false,
@@ -151,10 +154,12 @@ export function SearchSelect({
     }
   }
 
+  const showClear = clearable && Boolean(selected) && !disabled;
+
   return (
     <div className="combobox">
       <input
-        className={searchable ? 'combobox-search' : 'combobox-plain'}
+        className={`${searchable ? 'combobox-search' : 'combobox-plain'}${showClear ? ' has-clear' : ''}`}
         id={inputId}
         role="combobox"
         aria-expanded={open}
@@ -177,6 +182,19 @@ export function SearchSelect({
         }}
         onKeyDown={onKeyDown}
       />
+      {showClear && (
+        <button
+          type="button"
+          className="combobox-clear"
+          aria-label="Remove the chosen value"
+          // Mouse down, not click, so the input's blur does not reopen or move anything first.
+          onMouseDown={(event) => {
+            event.preventDefault();
+            onChange('');
+            setOpen(false);
+          }}
+        />
+      )}
       {open && (
         <div className="combobox-list" id={listId} role="listbox">
           {choices.map((choice, index) => (

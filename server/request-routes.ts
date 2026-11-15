@@ -1,7 +1,7 @@
 import { type Response, Router } from 'express';
 import type mongoose from 'mongoose';
 import { z } from 'zod';
-import { bangladeshDate } from '../shared/bangladesh-time.ts';
+import { addMonths, bangladeshDate } from '../shared/bangladesh-time.ts';
 import {
   type BloodRequest,
   cancelInput,
@@ -10,7 +10,8 @@ import {
   requestStatuses,
   responseInput,
 } from '../shared/blood-request.ts';
-import { findArea, unknownArea } from './area-model.ts';
+import { restMonthsAfterDonation } from '../shared/eligibility.ts';
+import { areaNameOf, unknownArea } from './area-model.ts';
 import {
   type BloodRequestDocument,
   BloodRequestModel,
@@ -122,15 +123,15 @@ export function requestRoutes(): Router {
 
   router.post('/', async (req, res) => {
     const input = requestInput.parse(req.body);
-    const area = await findArea(input.areaId, input.districtId);
-    if (!area) {
+    const areaName = await areaNameOf(input);
+    if (areaName === undefined) {
       res.status(400).json(unknownArea);
       return;
     }
     // Admin-created requests start open (SRS FR-REQ-03).
     const document = await BloodRequestModel.create({
       ...input,
-      areaName: area.name,
+      areaName,
       code: await nextRequestCode(new Date()),
       status: 'open',
     });
@@ -213,7 +214,11 @@ export function requestRoutes(): Router {
     const today = bangladeshDate(new Date());
     await DonorModel.updateOne(
       { _id: donor._id },
-      { $inc: { donationCount: 1 }, $max: { lastDonatedAt: today } },
+      {
+        $inc: { donationCount: 1 },
+        $max: { lastDonatedAt: today },
+        $set: { available: false, availableAgainOn: addMonths(today, restMonthsAfterDonation) },
+      },
     );
     await BloodRequestModel.updateOne(
       {

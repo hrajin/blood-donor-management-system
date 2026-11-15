@@ -1,7 +1,13 @@
 import { z } from 'zod';
 import { addDays, bangladeshDate } from './bangladesh-time.ts';
-import { areaId, type BloodGroup, bangladeshMobile, bloodGroups } from './donor.ts';
-import { isValidDistrict } from './locations.ts';
+import {
+  type BloodGroup,
+  bangladeshMobile,
+  bloodGroups,
+  checkLocation,
+  optionalLocation,
+} from './donor.ts';
+import { placeName } from './locations.ts';
 
 // Values and limits follow SRS Table 3.4-A and §8.3.
 export const maxUnits = 10;
@@ -109,6 +115,10 @@ export const responseStatusLabels: Record<ResponseStatus, string> = {
 const optionalText = (max: number) =>
   z.string().trim().max(max, `Use at most ${max} characters`).nullable();
 
+/**
+ * Only the patient's name, the blood group and the contact person's name and mobile number are
+ * required. The rest is optional: either it has a default, or it is null and checked when given.
+ */
 export const requestInput = z
   .object({
     patientName: z
@@ -129,12 +139,11 @@ export const requestInput = z
       .string()
       .trim()
       .min(3, 'Enter the hospital’s name')
-      .max(150, 'Use at most 150 characters'),
+      .max(150, 'Use at most 150 characters')
+      .nullable(),
     hospitalAddress: optionalText(250),
     ward: optionalText(50),
-    divisionId: z.string(),
-    districtId: z.string(),
-    areaId,
+    ...optionalLocation,
     reason: z.enum(requestReasons).nullable(),
     contactName: z
       .string()
@@ -142,13 +151,10 @@ export const requestInput = z
       .min(2, 'Enter the contact person’s name')
       .max(100, 'Use at most 100 characters'),
     contactPhone: bangladeshMobile,
-    relationship: z.enum(relationships, 'Choose the relationship to the patient'),
+    relationship: z.enum(relationships).nullable(),
     notes: optionalText(500),
   })
-  .refine(isValidDistrict, {
-    message: 'Choose the hospital’s division and district',
-    path: ['districtId'],
-  })
+  .superRefine(checkLocation)
   .refine((request) => request.requiredOn >= bangladeshDate(new Date()), {
     message: 'The date cannot be in the past',
     path: ['requiredOn'],
@@ -178,10 +184,22 @@ export type RequestCounts = {
   donated: number;
 };
 
+/** The hospital and the most precise place known, for a line under a request's title. */
+export function hospitalPlace(request: {
+  hospitalName: string | null;
+  areaName: string | null;
+  districtId: string | null;
+  divisionId: string | null;
+}): string {
+  const place = request.divisionId ? placeName(request) : null;
+  return [request.hospitalName, place].filter(Boolean).join(', ') || 'Hospital not recorded';
+}
+
 export type BloodRequestSummary = RequestInput &
   RequestCounts & {
     id: string;
-    areaName: string;
+    /** Null when no area is recorded. */
+    areaName: string | null;
     code: string;
     status: RequestStatus;
     createdAt: string;
@@ -226,7 +244,8 @@ export type RequestPage = {
 
 /**
  * How close a donor lives to the hospital (SRS §4.3): 1 = same area, 2 = same district,
- * 3 = same division, 4 = another division, 5 = not known (the location is not fully recorded).
+ * 3 = same division, 4 = another division, 5 = not known (the donor's or the hospital's
+ * division is not recorded).
  */
 export type Tier = 1 | 2 | 3 | 4 | 5;
 

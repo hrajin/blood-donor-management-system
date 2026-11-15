@@ -5,12 +5,11 @@ import {
   type ApiErrorBody,
   availabilityInput,
   bloodGroups,
-  type DonorInput,
   type DonorSort,
   donorInput,
   donorSorts,
 } from '../shared/donor.ts';
-import { findArea, unknownArea } from './area-model.ts';
+import { areaNameOf, unknownArea } from './area-model.ts';
 import { DonorModel, toDonor } from './donor-model.ts';
 
 const pageSize = 21;
@@ -51,15 +50,6 @@ function duplicateBody(error: unknown): ApiErrorBody | null {
   const message = field && duplicateMessages[field];
   if (!field || !message) return null;
   return { error: message, fields: { [field]: message } };
-}
-
-/** The name to save with the donor: null without an area; undefined if it is not in the district. */
-async function areaNameOf(input: DonorInput): Promise<string | null | undefined> {
-  if (input.areaId === null) return null;
-  // The schema guarantees a district whenever there is an area.
-  if (input.districtId === null) return undefined;
-  const area = await findArea(input.areaId, input.districtId);
-  return area?.name;
 }
 
 export function donorRoutes(): Router {
@@ -129,7 +119,7 @@ export function donorRoutes(): Router {
       return;
     }
     try {
-      const update = { ...input, areaName };
+      const update = { ...input, areaName, ...(input.available ? { availableAgainOn: null } : {}) };
       const document = await DonorModel.findByIdAndUpdate(id.data, update, {
         returnDocument: 'after',
         runValidators: true,
@@ -155,7 +145,8 @@ export function donorRoutes(): Router {
     const { available } = availabilityInput.parse(req.body);
     const document = await DonorModel.findByIdAndUpdate(
       id.data,
-      { available },
+      // Turning availability on by hand ends any automatic rest.
+      available ? { available, availableAgainOn: null } : { available },
       { returnDocument: 'after' },
     ).lean();
     if (!document) {

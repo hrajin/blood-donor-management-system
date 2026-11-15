@@ -8,6 +8,7 @@ import type {
 } from '../../shared/blood-request.ts';
 import type { DashboardStats } from '../../shared/dashboard.ts';
 import type { ApiErrorBody, Donor, DonorInput, DonorPage } from '../../shared/donor.ts';
+import type { Hospital } from '../../shared/hospitals.ts';
 import type { Area } from '../../shared/locations.ts';
 
 export class ApiError extends Error {
@@ -143,4 +144,13 @@ export async function listAreas(districtId: string, signal: AbortSignal): Promis
 /** Adds an area, or returns the existing one with the same name in that district. */
 export async function addArea(districtId: string, name: string): Promise<Area> {
   return (await (await request('POST', '/areas', { districtId, name })).json()) as Area;
+}
+
+export async function listHospitals(): Promise<Hospital[]> {
+  return (await (await request('GET', '/hospitals')).json()) as Hospital[];
+}
+
+/** Adds a hospital, or returns the existing one with the same name in that district. */
+export async function addHospital(input: Omit<Hospital, 'id'>): Promise<Hospital> {
+  return (await (await request('POST', '/hospitals', input)).json()) as Hospital;
 }

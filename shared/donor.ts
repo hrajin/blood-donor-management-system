@@ -25,8 +25,41 @@ export const bangladeshMobile = z
   .trim()
   .regex(/^01[3-9]\d{8}$/, 'Enter an 11-digit mobile number, e.g. 01712345678');
 
-/** A required area from the area list; the server checks that it is in the chosen district. */
-export const areaId = z.string().min(1, 'Choose an area / city');
+/** The location may stop at any level: a division, a district in it, or an area in that. */
+export const optionalLocation = {
+  divisionId: z.string().nullable(),
+  districtId: z.string().nullable(),
+  areaId: z.string().nullable(),
+};
+
+/** A district needs its division, and an area its district. The server checks the area itself. */
+export function checkLocation(
+  location: { divisionId: string | null; districtId: string | null; areaId: string | null },
+  context: z.RefinementCtx,
+) {
+  const { divisionId, districtId, areaId } = location;
+  if (districtId !== null && divisionId === null) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Choose the division first',
+      path: ['divisionId'],
+    });
+  }
+  if (districtId !== null && divisionId !== null && !isValidDistrict({ divisionId, districtId })) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Choose a district in this division',
+      path: ['districtId'],
+    });
+  }
+  if (areaId !== null && districtId === null) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Choose the district first',
+      path: ['districtId'],
+    });
+  }
+}
 
 const optionalText = (max: number) =>
   z.string().trim().max(max, `Use at most ${max} characters`).nullable();
@@ -51,10 +84,7 @@ export const donorInput = z
       .trim()
       .regex(/^(\d{10}|\d{13}|\d{17})$/, 'Enter a 10, 13 or 17-digit NID number')
       .nullable(),
-    // The location may stop at any level: a division, a district in it, or an area in that.
-    divisionId: z.string().nullable(),
-    districtId: z.string().nullable(),
-    areaId: z.string().nullable(),
+    ...optionalLocation,
     presentAddress: optionalText(250),
     permanentAddress: optionalText(250),
     available: z.boolean(),
@@ -65,21 +95,7 @@ export const donorInput = z
       .max(300, 'Enter at most 300'),
     lastDonatedAt: z.iso.date('Enter a valid date').nullable(),
   })
-  .refine((donor) => donor.districtId === null || donor.divisionId !== null, {
-    message: 'Choose the division first',
-    path: ['divisionId'],
-  })
-  .refine(
-    (donor) =>
-      donor.districtId === null ||
-      donor.divisionId === null ||
-      isValidDistrict({ divisionId: donor.divisionId, districtId: donor.districtId }),
-    { message: 'Choose a district in this division', path: ['districtId'] },
-  )
-  .refine((donor) => donor.areaId === null || donor.districtId !== null, {
-    message: 'Choose the district first',
-    path: ['districtId'],
-  })
+  .superRefine(checkLocation)
   .refine(
     (donor) =>
       !donor.dateOfBirth ||
@@ -120,6 +136,8 @@ export const availabilityInput = z.object({ available: z.boolean() });
 
 export type Donor = DonorInput & {
   id: string;
+  /** The day an automatically unavailable donor becomes available again; null otherwise. */
+  availableAgainOn: string | null;
   /** Null when no area is recorded. */
   areaName: string | null;
   createdAt: string;

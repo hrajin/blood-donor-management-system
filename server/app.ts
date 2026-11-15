@@ -12,6 +12,7 @@ import { authRoutes, requireAdmin, sessionCookieName } from './auth.ts';
 import type { Config } from './config.ts';
 import { dashboardRoutes } from './dashboard-routes.ts';
 import { donorRoutes } from './donor-routes.ts';
+import { hospitalRoutes } from './hospital-routes.ts';
 import { requestRoutes } from './request-routes.ts';
 
 const sessionHours = 8;
@@ -67,6 +68,7 @@ export function createApp(config: Config): express.Express {
   app.use('/api/areas', requireAdmin, areaRoutes());
   app.use('/api/dashboard', requireAdmin, dashboardRoutes());
   app.use('/api/donors', requireAdmin, donorRoutes());
+  app.use('/api/hospitals', requireAdmin, hospitalRoutes());
   app.use('/api/requests', requireAdmin, requestRoutes());
   app.use('/api', (_req, res) => {
     res.status(404).json({ error: 'Not found' });

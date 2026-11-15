@@ -7,10 +7,10 @@ type Props = {
   value: Location;
   onChange: (value: Location) => void;
   /**
-   * `filter`: "All …" choices, no adding. `required`: every level must be chosen (requests).
-   * `optional`: each level can be left as "Not given" (donors). Forms let the admin add areas.
+   * `filter`: "All …" choices, no adding. `optional`: each level can be left empty or removed
+   * with its clear button (donors, requests). Forms let the admin add areas.
    */
-  mode: 'filter' | 'required' | 'optional';
+  mode: 'filter' | 'optional';
   error?: string | undefined;
 };
 
@@ -20,8 +20,8 @@ export function LocationSelect({ value, onChange, mode, error }: Props) {
   const areaId = useId();
   const filter = mode === 'filter';
   const invalid = Boolean(error);
-  const emptyLabel = (all: string) =>
-    mode === 'filter' ? all : mode === 'optional' ? 'Not given' : undefined;
+  const emptyLabel = (all: string) => (filter ? all : undefined);
+  const clearable = mode === 'optional';
 
   return (
     <fieldset className="location">
@@ -34,7 +34,7 @@ export function LocationSelect({ value, onChange, mode, error }: Props) {
           value={value.divisionId}
           placeholder="Search or choose a division"
           emptyLabel={emptyLabel('All divisions')}
-          invalid={invalid && mode === 'required' && !value.divisionId}
+          clearable={clearable}
           onChange={(id) => onChange({ divisionId: id, districtId: '', areaId: '' })}
         />
       </div>
@@ -46,8 +46,8 @@ export function LocationSelect({ value, onChange, mode, error }: Props) {
           value={value.districtId}
           placeholder={value.divisionId ? 'Search or choose a district' : 'Choose a division first'}
           emptyLabel={value.divisionId ? emptyLabel('All districts') : undefined}
+          clearable={clearable}
           disabled={!value.divisionId}
-          invalid={invalid && mode === 'required' && !value.districtId}
           onChange={(id) => onChange({ ...value, districtId: id, areaId: '' })}
         />
       </div>
@@ -59,6 +59,7 @@ export function LocationSelect({ value, onChange, mode, error }: Props) {
           value={value.areaId}
           allowCreate={!filter}
           emptyLabel={emptyLabel('All areas')}
+          clearable={clearable}
           invalid={invalid}
           onChange={(id) => onChange({ ...value, areaId: id })}
         />

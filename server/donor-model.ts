@@ -21,6 +21,8 @@ const donorSchema = new mongoose.Schema(
     presentAddress: { type: String, default: null },
     permanentAddress: { type: String, default: null },
     available: { type: Boolean, required: true },
+    // Set when a recorded donation made the donor unavailable; they are restored on this day.
+    availableAgainOn: { type: String, default: null },
     donationCount: { type: Number, required: true, min: 0 },
     // Null until the first donation.
     lastDonatedAt: { type: String, default: null },
@@ -59,6 +61,7 @@ export function toDonor(document: DonorDocument): Donor {
     presentAddress: document.presentAddress ?? null,
     permanentAddress: document.permanentAddress ?? null,
     available: document.available,
+    availableAgainOn: document.availableAgainOn ?? null,
     donationCount: document.donationCount,
     lastDonatedAt: document.lastDonatedAt ?? null,
     createdAt: document.createdAt.toISOString(),

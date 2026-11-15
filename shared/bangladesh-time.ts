@@ -25,6 +25,19 @@ export function shiftYears(date: string, years: number): string {
   return `${String(year + years).padStart(4, '0')}${date.slice(4)}`;
 }
 
+/** `date` (`YYYY-MM-DD`) moved by whole calendar months; a day past the month's end becomes its last day. */
+export function addMonths(date: string, months: number): string {
+  const day = Number(date.slice(8, 10));
+  const first = new Date(
+    Date.UTC(Number(date.slice(0, 4)), Number(date.slice(5, 7)) - 1 + months, 1),
+  );
+  const lastDay = new Date(
+    Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0),
+  ).getUTCDate();
+  first.setUTCDate(Math.min(day, lastDay));
+  return first.toISOString().slice(0, 10);
+}
+
 /** Whole years from `from` to `to` (both `YYYY-MM-DD`), e.g. an age on a given day. */
 export function completedYears(from: string, to: string): number {
   const years = Number(to.slice(0, 4)) - Number(from.slice(0, 4));

@@ -7,6 +7,7 @@
       "!.local",
       "!data",
       "!shared/locations.json",
+      "!shared/hospitals.json",
       "!**/*.md"
     ]
   },

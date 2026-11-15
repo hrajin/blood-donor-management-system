@@ -3,16 +3,19 @@ import type { Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { after, before, test } from 'node:test';
 import mongoose from 'mongoose';
-import { addDays, bangladeshDate } from '../shared/bangladesh-time.ts';
+import { addDays, addMonths, bangladeshDate } from '../shared/bangladesh-time.ts';
 import type { BloodRequest, SuggestionResult } from '../shared/blood-request.ts';
 import type { DashboardStats } from '../shared/dashboard.ts';
 import type { ApiErrorBody, Donor, DonorInput, DonorPage } from '../shared/donor.ts';
+import { builtInHospitals } from '../shared/hospitals.ts';
 import { builtInAreasOf, districts, districtsOf } from '../shared/locations.ts';
 import { createApp } from './app.ts';
 import { AreaModel } from './area-model.ts';
 import { BloodRequestModel } from './blood-request-model.ts';
 import { loadConfig } from './config.ts';
+import { restoreAvailability } from './donor-availability.ts';
 import { DonorModel } from './donor-model.ts';
+import { HospitalModel } from './hospital-model.ts';
 
 const config = loadConfig({
   NODE_ENV: 'test',
@@ -31,6 +34,7 @@ before(async () => {
   await DonorModel.init();
   await BloodRequestModel.init();
   await AreaModel.init();
+  await HospitalModel.init();
   server = createApp(config).listen(0);
   baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api`;
 });
@@ -298,6 +302,17 @@ test('suggests eligible donors nearest first, and a recorded donation fulfils th
   const donorAfter = (await (await send(cookie, 'GET', `/donors/${sameArea.id}`)).json()) as Donor;
   assert.equal(donorAfter.donationCount, 1);
   assert.equal(donorAfter.lastDonatedAt, today);
+  // A donation rests the donor for 3 months; the rest ends by itself on that day.
+  const backOn = addMonths(today, 3);
+  assert.equal(donorAfter.available, false);
+  assert.equal(donorAfter.availableAgainOn, backOn);
+  await restoreAvailability(addDays(backOn, -1));
+  const resting = (await (await send(cookie, 'GET', `/donors/${sameArea.id}`)).json()) as Donor;
+  assert.equal(resting.available, false);
+  await restoreAvailability(backOn);
+  const restored = (await (await send(cookie, 'GET', `/donors/${sameArea.id}`)).json()) as Donor;
+  assert.equal(restored.available, true);
+  assert.equal(restored.availableAgainOn, null);
 
   const late = await send(cookie, 'PUT', `/requests/${request.id}/responses/${sameDivision.id}`, {
     status: 'agreed',
@@ -402,4 +417,96 @@ test('a donor needs only a name, a mobile number and a blood group', async () =>
     bloodGroup: null,
   });
   assert.equal(missingBloodGroup.status, 400);
+});
+
+test('a request needs only the patient, blood group, and the contact’s name and mobile number', async () => {
+  const cookie = await adminCookie();
+  const donorResponse = await send(cookie, 'POST', '/donors', {
+    ...donor('01940000001', 0),
+    bloodGroup: 'A-',
+  });
+  assert.equal(donorResponse.status, 201);
+
+  const created = await send(cookie, 'POST', '/requests', {
+    patientName: 'Quick Patient',
+    bloodGroup: 'A-',
+    component: 'whole-blood',
+    unitsRequired: 1,
+    urgency: 'normal',
+    requiredOn: bangladeshDate(new Date()),
+    hospitalName: null,
+    hospitalAddress: null,
+    ward: null,
+    divisionId: null,
+    districtId: null,
+    areaId: null,
+    reason: null,
+    contactName: 'Quick Contact',
+    contactPhone: '01399999997',
+    relationship: null,
+    notes: null,
+  });
+  assert.equal(created.status, 201);
+  const request = (await created.json()) as BloodRequest;
+  assert.equal(request.areaName, null);
+
+  // Without a hospital location, every donor of the blood group is suggested, in the last tier.
+  const result = (await (
+    await send(cookie, 'GET', `/requests/${request.id}/suggestions`)
+  ).json()) as SuggestionResult;
+  assert.ok(result.suggestions.length > 0);
+  assert.ok(result.suggestions.every((suggestion) => suggestion.tier === 5));
+
+  const noContact = await send(cookie, 'POST', '/requests', {
+    ...request,
+    contactName: '',
+  });
+  assert.equal(noContact.status, 400);
+});
+
+test('admins can add a hospital once, and a built-in name is not added again', async () => {
+  const cookie = await adminCookie();
+  const district = districts[0];
+  assert.ok(district);
+  const place = { divisionId: district.divisionId, districtId: district.id, areaId: null };
+
+  const added = await send(cookie, 'POST', '/hospitals', { name: 'Test Care Hospital', ...place });
+  assert.equal(added.status, 201);
+  const hospital = (await added.json()) as { id: string; name: string };
+  const again = await send(cookie, 'POST', '/hospitals', {
+    name: '  test  CARE hospital ',
+    ...place,
+  });
+  assert.equal(again.status, 200);
+  assert.equal(((await again.json()) as { id: string }).id, hospital.id);
+
+  const listed = (await (await send(cookie, 'GET', '/hospitals')).json()) as { id: string }[];
+  assert.deepEqual(
+    listed.map((h) => h.id),
+    [hospital.id],
+  );
+
+  const builtIn = builtInHospitals[0];
+  assert.ok(builtIn);
+  const sameAsBuiltIn = await send(cookie, 'POST', '/hospitals', {
+    name: builtIn.name.toUpperCase(),
+    divisionId: builtIn.divisionId,
+    districtId: builtIn.districtId,
+    areaId: null,
+  });
+  assert.equal(((await sameAsBuiltIn.json()) as { id: string }).id, builtIn.id);
+
+  const noDistrict = await send(cookie, 'POST', '/hospitals', {
+    name: 'Somewhere Clinic',
+    divisionId: null,
+    districtId: null,
+    areaId: null,
+  });
+  assert.equal(noDistrict.status, 201);
+  const badArea = await send(cookie, 'POST', '/hospitals', {
+    name: 'Bad Area Hospital',
+    ...place,
+    areaId: 'not-an-area',
+  });
+  assert.equal(badArea.status, 400);
 });

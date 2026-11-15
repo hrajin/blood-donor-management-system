@@ -14,11 +14,11 @@ type SuggestionOptions = {
 };
 
 function tierOf(donor: DonorContact, request: BloodRequestDocument): Tier {
-  if (donor.areaId === request.areaId) return 1;
-  if (donor.districtId === request.districtId) return 2;
-  if (donor.divisionId === request.divisionId) return 3;
-  // A donor without a recorded division could live anywhere, so they come after everyone else.
-  return donor.divisionId === null ? 5 : 4;
+  if (request.areaId !== null && donor.areaId === request.areaId) return 1;
+  if (request.districtId !== null && donor.districtId === request.districtId) return 2;
+  if (request.divisionId !== null && donor.divisionId === request.divisionId) return 3;
+  // Without a recorded division on either side, nobody can be called near or far.
+  return donor.divisionId === null || request.divisionId === null ? 5 : 4;
 }
 
 /** Donor IDs that agreed to give for another open request and have not donated yet (SRS C8). */
@@ -55,7 +55,8 @@ export async function suggestDonors(
     {
       bloodGroup: request.bloodGroup,
       // Donors without a recorded location are always included: they may live nearby.
-      ...(wider ? {} : { divisionId: { $in: [request.divisionId, null] } }),
+      // A request without a division has no area to search, so every donor is included.
+      ...(wider || !request.divisionId ? {} : { divisionId: { $in: [request.divisionId, null] } }),
     },
     { ...contactProjection, dateOfBirth: 1 },
   ).lean();

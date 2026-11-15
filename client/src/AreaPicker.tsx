@@ -10,6 +10,8 @@ type Props = {
   onChange: (areaId: string) => void;
   /** Lets the admin add a typed name that is not in the list. */
   allowCreate?: boolean;
+  /** Shows a button that removes the chosen area. */
+  clearable?: boolean;
   /** The empty choice, e.g. "All areas" in filters; without it, there is none. */
   emptyLabel?: string | undefined;
   invalid?: boolean;
@@ -28,6 +30,7 @@ export function AreaPicker({
   value,
   onChange,
   allowCreate = false,
+  clearable = false,
   emptyLabel,
   invalid,
   inputId,
@@ -89,6 +92,7 @@ export function AreaPicker({
       onChange={onChange}
       placeholder={placeholder}
       emptyLabel={state.status === 'loaded' ? emptyLabel : undefined}
+      clearable={clearable}
       disabled={state.status !== 'loaded'}
       invalid={invalid}
       create={

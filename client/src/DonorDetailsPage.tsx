@@ -8,6 +8,7 @@ import { ApiError, getDonor, setAvailability } from './api.ts';
 import { Breadcrumbs } from './Breadcrumbs.tsx';
 import { formatDay, formatInstant, relativeDay } from './calendar-format.ts';
 import { initials } from './donor-initials.ts';
+import { NotGiven } from './NotGiven.tsx';
 import { useToast } from './Toaster.tsx';
 
 type DetailsState =
@@ -189,7 +190,15 @@ function DonorDetails({ donor, onChange }: { donor: Donor; onChange: (donor: Don
               <span className="muted">Not donated yet</span>
             )}
           </Detail>
-          <Detail label="Availability">{donor.available ? 'Available' : 'Unavailable'}</Detail>
+          <Detail label="Availability">
+            {donor.available ? 'Available' : 'Unavailable'}
+            {donor.availableAgainOn && (
+              <span className="muted">
+                {' '}
+                · available again on {formatDay(donor.availableAgainOn)}
+              </span>
+            )}
+          </Detail>
         </DetailsCard>
 
         <DetailsCard title="Location and address">
@@ -234,8 +243,4 @@ function Detail({ label, children }: { label: string; children: ReactNode }) {
       <dd>{children}</dd>
     </div>
   );
-}
-
-function NotGiven() {
-  return <span className="muted">Not given</span>;
 }

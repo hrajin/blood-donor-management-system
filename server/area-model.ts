@@ -80,3 +80,15 @@ export const unknownArea: ApiErrorBody = {
   error: 'Check the highlighted fields',
   fields: { areaId: 'Choose an area / city in this district' },
 };
+
+/** The name to save with a record: null without an area; undefined if it is not in the district. */
+export async function areaNameOf(location: {
+  areaId: string | null;
+  districtId: string | null;
+}): Promise<string | null | undefined> {
+  if (location.areaId === null) return null;
+  // The schema guarantees a district whenever there is an area.
+  if (location.districtId === null) return undefined;
+  const area = await findArea(location.areaId, location.districtId);
+  return area?.name;
+}

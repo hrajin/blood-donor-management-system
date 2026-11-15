@@ -6,6 +6,8 @@ import { addDays } from './bangladesh-time.ts';
 export const minDonorAge = 18;
 export const maxMatchingAge = 60;
 export const donationIntervalDays = 120;
+/** After a recorded donation the donor is marked unavailable for this long, then available again. */
+export const restMonthsAfterDonation = 3;
 
 /** The first day the donor may give blood again; null if they have not donated. */
 export function nextEligibleDate(lastDonatedAt: string | null): string | null {

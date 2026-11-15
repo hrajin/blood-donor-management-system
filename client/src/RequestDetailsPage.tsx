@@ -9,6 +9,7 @@ import {
   componentLabels,
   type DonorContact,
   type DonorSuggestion,
+  hospitalPlace,
   type ResponseInput,
   type ResponseStatus,
   relationshipLabels,
@@ -31,6 +32,7 @@ import {
 import { Breadcrumbs } from './Breadcrumbs.tsx';
 import { formatDay, formatInstant, relativeDay } from './calendar-format.ts';
 import { Field } from './form-parts.tsx';
+import { NotGiven } from './NotGiven.tsx';
 import { optionsOf, SearchSelect } from './SearchSelect.tsx';
 import { useToast } from './Toaster.tsx';
 import { UnitsProgress } from './UnitsProgress.tsx';
@@ -200,8 +202,7 @@ function RequestHeader({
             </span>
           </div>
           <p className="muted">
-            {request.code} · {componentLabels[request.component]} · {request.hospitalName},{' '}
-            {request.areaName}, {zoneName(request.districtId)}
+            {[request.code, componentLabels[request.component], hospitalPlace(request)].join(' · ')}
           </p>
         </div>
         <div className="request-when">
@@ -409,12 +410,13 @@ function ContactedDonors({
   );
 }
 
+// Tiers 1–3 only occur when the request has that level, so the zone names are there.
 const tierTitles: Record<Tier, (request: BloodRequest) => string> = {
   1: (request) => `Same area · ${request.areaName}`,
-  2: (request) => `Same district · ${zoneName(request.districtId)}`,
-  3: (request) => `Same division · ${zoneName(request.divisionId)}`,
+  2: (request) => `Same district · ${zoneName(request.districtId ?? '')}`,
+  3: (request) => `Same division · ${zoneName(request.divisionId ?? '')}`,
   4: () => 'Other divisions',
-  5: () => 'Location not recorded',
+  5: (request) => (request.divisionId ? 'Location not recorded' : 'Hospital location not recorded'),
 };
 
 type SuggestionState =
@@ -652,25 +654,20 @@ function RequestFacts({ request }: { request: BloodRequest }) {
           <Fact label="Component">{componentLabels[request.component]}</Fact>
           <Fact label="Units">{request.unitsRequired}</Fact>
           <Fact label="Reason">
-            {request.reason ? (
-              requestReasonLabels[request.reason]
-            ) : (
-              <span className="muted">Not given</span>
-            )}
+            {request.reason ? requestReasonLabels[request.reason] : <NotGiven />}
           </Fact>
         </dl>
       </section>
       <section className="details-card">
         <h2>Hospital and contact</h2>
         <dl>
-          <Fact label="Hospital">{request.hospitalName}</Fact>
-          <Fact label="Area">
-            {request.areaName}, {zoneName(request.districtId)}, {zoneName(request.divisionId)}
-          </Fact>
+          <Fact label="Hospital">{request.hospitalName ?? <NotGiven />}</Fact>
+          <Fact label="Location">{request.divisionId ? placeName(request) : <NotGiven />}</Fact>
           {request.hospitalAddress && <Fact label="Address">{request.hospitalAddress}</Fact>}
           {request.ward && <Fact label="Ward / bed">{request.ward}</Fact>}
           <Fact label="Contact">
-            {request.contactName} ({relationshipLabels[request.relationship]}) ·{' '}
+            {request.contactName}
+            {request.relationship && ` (${relationshipLabels[request.relationship]})`} ·{' '}
             <a href={`tel:${request.contactPhone}`}>{request.contactPhone}</a>
           </Fact>
           {request.notes && <Fact label="Notes">{request.notes}</Fact>}
