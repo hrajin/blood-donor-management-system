@@ -1,0 +1,19 @@
+# ── deps / build artefacts ──────────────────────────────────────────────────
+node_modules
+client/dist
+.local
+
+# ── environment & secrets ────────────────────────────────────────────────────
+.env
+.env.*
+
+# ── git & editor ─────────────────────────────────────────────────────────────
+.git
+.gitignore
+.github
+
+# ── docs & config not needed at runtime ──────────────────────────────────────
+AGENTS.md
+README.md
+docs
+biome.json
