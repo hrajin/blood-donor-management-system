@@ -33,7 +33,7 @@ export function AdminLayout() {
 
   switch (session.status) {
     case 'loading':
-      return <p className="page-status">Loading…</p>;
+      return <AdminSkeleton />;
     case 'failed':
       return (
         <p className="page-status" role="alert">
@@ -85,6 +85,31 @@ export function AdminLayout() {
       throw new Error(`Unhandled session state: ${JSON.stringify(unhandled)}`);
     }
   }
+}
+
+function AdminSkeleton() {
+  return (
+    <div className="admin" aria-hidden="true">
+      <aside className="sidebar skeleton-sidebar">
+        <div className="skeleton-bar" style={{ width: '72%', height: '20px' }} />
+        <div className="skeleton-nav">
+          <div className="skeleton-bar" style={{ width: '80%', height: '14px' }} />
+          <div className="skeleton-bar" style={{ width: '65%', height: '14px' }} />
+          <div className="skeleton-bar" style={{ width: '75%', height: '14px' }} />
+          <div className="skeleton-bar" style={{ width: '70%', height: '14px' }} />
+        </div>
+        <div className="skeleton-account">
+          <div className="skeleton-bar" style={{ width: '90%', height: '12px' }} />
+          <div className="skeleton-bar" style={{ width: '60%', height: '32px', borderRadius: '6px' }} />
+        </div>
+      </aside>
+      <div className="content">
+        <div className="skeleton-bar" style={{ width: '200px', height: '28px', marginBottom: '8px' }} />
+        <div className="skeleton-bar" style={{ width: '140px', height: '14px', marginBottom: '32px' }} />
+        <div className="skeleton-block" />
+      </div>
+    </div>
+  );
 }
 
 function DashboardIcon() {
