@@ -5,6 +5,7 @@ import { fieldErrors } from '../../shared/field-errors.ts';
 import { ApiError, createDonor, getDonor, updateDonor } from './api.ts';
 import { ChoiceGroup, Field, FormSection } from './form-parts.tsx';
 import { DonorFormSkeleton } from './Skeleton.tsx';
+import { getCached, setCached } from './page-cache.ts';
 import { LocationSelect } from './LocationSelect.tsx';
 
 type FormValues = {
@@ -95,10 +96,11 @@ type DonorFormProps = {
 };
 
 export function DonorForm({ donorId: id, onSaved, onCancel }: DonorFormProps) {
-  const [values, setValues] = useState<FormValues>(emptyForm);
+  const cachedDonor = id ? getCached<Donor>(`donor:${id}`) : undefined;
+  const [values, setValues] = useState<FormValues>(cachedDonor ? toFormValues(cachedDonor) : emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState('');
-  const [loading, setLoading] = useState(id !== undefined);
+  const [loading, setLoading] = useState(id !== undefined && !cachedDonor);
   const [saving, setSaving] = useState(false);
   const today = bangladeshDate(new Date());
 
@@ -106,6 +108,7 @@ export function DonorForm({ donorId: id, onSaved, onCancel }: DonorFormProps) {
     if (!id) return;
     getDonor(id)
       .then((donor) => {
+        setCached(`donor:${id}`, donor);
         setValues(toFormValues(donor));
         setLoading(false);
       })

@@ -37,6 +37,7 @@ import { optionsOf, SearchSelect } from './SearchSelect.tsx';
 import { useToast } from './Toaster.tsx';
 import { UnitsProgress } from './UnitsProgress.tsx';
 import { RequestDetailsSkeleton } from './Skeleton.tsx';
+import { getCached, setCached } from './page-cache.ts';
 
 type RequestState =
   | { status: 'loading' }
@@ -45,12 +46,18 @@ type RequestState =
 
 export function RequestDetailsPage() {
   const { id } = useParams();
-  const [state, setState] = useState<RequestState>({ status: 'loading' });
+  const cached = id ? getCached<BloodRequest>(`request:${id}`) : undefined;
+  const [state, setState] = useState<RequestState>(
+    cached ? { status: 'loaded', request: cached } : { status: 'loading' },
+  );
 
   useEffect(() => {
     if (!id) return;
     getRequest(id)
-      .then((request) => setState({ status: 'loaded', request }))
+      .then((request) => {
+        setCached(`request:${id}`, request);
+        setState({ status: 'loaded', request });
+      })
       .catch((error: unknown) => {
         console.error(error);
         const message = error instanceof ApiError ? error.message : 'Could not load the request.';
@@ -67,7 +74,13 @@ export function RequestDetailsPage() {
   return (
     <div className="request-page">
       <Breadcrumbs crumbs={crumbs} />
-      <RequestBody state={state} onChange={(request) => setState({ status: 'loaded', request })} />
+      <RequestBody
+        state={state}
+        onChange={(request) => {
+          setCached(`request:${request.id}`, request);
+          setState({ status: 'loaded', request });
+        }}
+      />
     </div>
   );
 }

@@ -19,6 +19,7 @@ import { optionsOf, SearchSelect } from './SearchSelect.tsx';
 import { useToast } from './Toaster.tsx';
 import { useSearchInput, withFilters } from './url-filters.ts';
 import { DonorCardsSkeleton } from './Skeleton.tsx';
+import { getCached, setCached } from './page-cache.ts';
 
 type ListState =
   | { status: 'loading'; previous: DonorPage | null }
@@ -50,14 +51,23 @@ export function DonorListPage() {
   const [pendingIds, setPendingIds] = useState<ReadonlySet<string>>(new Set());
 
   useEffect(() => {
+    const key = `donors:${searchParams.toString()}`;
+    const cached = getCached<DonorPage>(key);
     const controller = new AbortController();
-    // Keep the current cards on screen while the next results load.
-    setState((current) => ({
-      status: 'loading',
-      previous: current.status === 'loaded' ? current.page : null,
-    }));
+    // Show cached data instantly; fall back to keeping the previous page while loading.
+    if (cached) {
+      setState({ status: 'loaded', page: cached });
+    } else {
+      setState((current) => ({
+        status: 'loading',
+        previous: current.status === 'loaded' ? current.page : null,
+      }));
+    }
     listDonors(searchParams, controller.signal)
-      .then((page) => setState({ status: 'loaded', page }))
+      .then((page) => {
+        setCached(key, page);
+        setState({ status: 'loaded', page });
+      })
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
         console.error(error);

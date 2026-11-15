@@ -10,6 +10,7 @@ import { formatDay, formatInstant, relativeDay } from './calendar-format.ts';
 import { initials } from './donor-initials.ts';
 import { NotGiven } from './NotGiven.tsx';
 import { DonorDetailsSkeleton } from './Skeleton.tsx';
+import { getCached, setCached } from './page-cache.ts';
 import { useToast } from './Toaster.tsx';
 
 type DetailsState =
@@ -19,12 +20,18 @@ type DetailsState =
 
 export function DonorDetailsPage() {
   const { id } = useParams();
-  const [state, setState] = useState<DetailsState>({ status: 'loading' });
+  const cached = id ? getCached<Donor>(`donor:${id}`) : undefined;
+  const [state, setState] = useState<DetailsState>(
+    cached ? { status: 'loaded', donor: cached } : { status: 'loading' },
+  );
 
   useEffect(() => {
     if (!id) return;
     getDonor(id)
-      .then((donor) => setState({ status: 'loaded', donor }))
+      .then((donor) => {
+        setCached(`donor:${id}`, donor);
+        setState({ status: 'loaded', donor });
+      })
       .catch((error: unknown) => {
         console.error(error);
         const message = error instanceof ApiError ? error.message : 'Could not load the donor.';
@@ -41,7 +48,13 @@ export function DonorDetailsPage() {
   return (
     <div className="donor-page">
       <Breadcrumbs crumbs={crumbs} />
-      <DetailsBody state={state} onChange={(donor) => setState({ status: 'loaded', donor })} />
+      <DetailsBody
+        state={state}
+        onChange={(donor) => {
+          setCached(`donor:${donor.id}`, donor);
+          setState({ status: 'loaded', donor });
+        }}
+      />
     </div>
   );
 }

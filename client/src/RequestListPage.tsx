@@ -17,6 +17,7 @@ import { SearchBox } from './SearchBox.tsx';
 import { UnitsProgress } from './UnitsProgress.tsx';
 import { useSearchInput, withFilters } from './url-filters.ts';
 import { RequestListSkeleton } from './Skeleton.tsx';
+import { getCached, setCached } from './page-cache.ts';
 
 type ListState =
   | { status: 'loading'; previous: RequestPage | null }
@@ -35,13 +36,22 @@ export function RequestListPage() {
   const status = searchParams.get('status') ?? 'open';
 
   useEffect(() => {
+    const key = `requests:${searchParams.toString()}`;
+    const cached = getCached<RequestPage>(key);
     const controller = new AbortController();
-    setState((current) => ({
-      status: 'loading',
-      previous: current.status === 'loaded' ? current.page : null,
-    }));
+    if (cached) {
+      setState({ status: 'loaded', page: cached });
+    } else {
+      setState((current) => ({
+        status: 'loading',
+        previous: current.status === 'loaded' ? current.page : null,
+      }));
+    }
     listRequests(searchParams, controller.signal)
-      .then((page) => setState({ status: 'loaded', page }))
+      .then((page) => {
+        setCached(key, page);
+        setState({ status: 'loaded', page });
+      })
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
         console.error(error);

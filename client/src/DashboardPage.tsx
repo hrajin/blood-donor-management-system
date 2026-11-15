@@ -5,6 +5,7 @@ import { zoneName } from '../../shared/locations.ts';
 import { ApiError, getDashboard } from './api.ts';
 import { Breadcrumbs } from './Breadcrumbs.tsx';
 import { DashboardSkeleton } from './Skeleton.tsx';
+import { getCached, setCached } from './page-cache.ts';
 import { formatDay, formatMonth } from './calendar-format.ts';
 import { AvailabilityDonut, BarList, type ChartValue, ColumnChart } from './DashboardCharts.tsx';
 
@@ -25,12 +26,18 @@ function availabilityValue(key: string, label: string, count: AvailabilityCount)
 }
 
 export function DashboardPage() {
-  const [state, setState] = useState<DashboardState>({ status: 'loading' });
+  const cached = getCached<DashboardStats>('dashboard');
+  const [state, setState] = useState<DashboardState>(
+    cached ? { status: 'loaded', stats: cached } : { status: 'loading' },
+  );
 
   useEffect(() => {
     const controller = new AbortController();
     getDashboard(controller.signal)
-      .then((stats) => setState({ status: 'loaded', stats }))
+      .then((stats) => {
+        setCached('dashboard', stats);
+        setState({ status: 'loaded', stats });
+      })
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
         console.error(error);
