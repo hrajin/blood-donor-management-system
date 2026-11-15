@@ -36,6 +36,7 @@ import { NotGiven } from './NotGiven.tsx';
 import { optionsOf, SearchSelect } from './SearchSelect.tsx';
 import { useToast } from './Toaster.tsx';
 import { UnitsProgress } from './UnitsProgress.tsx';
+import { RequestDetailsSkeleton } from './Skeleton.tsx';
 
 type RequestState =
   | { status: 'loading' }
@@ -80,7 +81,7 @@ function RequestBody({
 }) {
   switch (state.status) {
     case 'loading':
-      return <p className="page-status">Loading request…</p>;
+      return <RequestDetailsSkeleton />;
     case 'failed':
       return (
         <p className="form-error" role="alert">

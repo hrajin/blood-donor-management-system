@@ -9,6 +9,7 @@ import { Breadcrumbs } from './Breadcrumbs.tsx';
 import { formatDay, formatInstant, relativeDay } from './calendar-format.ts';
 import { initials } from './donor-initials.ts';
 import { NotGiven } from './NotGiven.tsx';
+import { DonorDetailsSkeleton } from './Skeleton.tsx';
 import { useToast } from './Toaster.tsx';
 
 type DetailsState =
@@ -54,7 +55,7 @@ function DetailsBody({
 }) {
   switch (state.status) {
     case 'loading':
-      return <p className="page-status">Loading donor…</p>;
+      return <DonorDetailsSkeleton />;
     case 'failed':
       return (
         <p className="form-error" role="alert">

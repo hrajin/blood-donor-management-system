@@ -18,6 +18,7 @@ import { SearchBox } from './SearchBox.tsx';
 import { optionsOf, SearchSelect } from './SearchSelect.tsx';
 import { useToast } from './Toaster.tsx';
 import { useSearchInput, withFilters } from './url-filters.ts';
+import { DonorCardsSkeleton } from './Skeleton.tsx';
 
 type ListState =
   | { status: 'loading'; previous: DonorPage | null }
@@ -241,7 +242,7 @@ function DonorCards({
 }: CardsProps) {
   switch (state.status) {
     case 'loading':
-      if (!state.previous) return <p className="page-status">Loading donors…</p>;
+      if (!state.previous) return <DonorCardsSkeleton />;
       return (
         <DonorGrid
           page={state.previous}

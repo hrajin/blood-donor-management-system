@@ -4,6 +4,7 @@ import { bloodGroups, type Donor, donorInput, genderLabels, genders } from '../.
 import { fieldErrors } from '../../shared/field-errors.ts';
 import { ApiError, createDonor, getDonor, updateDonor } from './api.ts';
 import { ChoiceGroup, Field, FormSection } from './form-parts.tsx';
+import { DonorFormSkeleton } from './Skeleton.tsx';
 import { LocationSelect } from './LocationSelect.tsx';
 
 type FormValues = {
@@ -143,7 +144,7 @@ export function DonorForm({ donorId: id, onSaved, onCancel }: DonorFormProps) {
     }
   }
 
-  if (loading) return <p className="page-status">Loading donor…</p>;
+  if (loading) return <DonorFormSkeleton />;
 
   return (
     <form className="donor-form" onSubmit={submit} noValidate>

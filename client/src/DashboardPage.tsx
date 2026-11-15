@@ -4,6 +4,7 @@ import type { AvailabilityCount, DashboardStats, TopDonor } from '../../shared/d
 import { zoneName } from '../../shared/locations.ts';
 import { ApiError, getDashboard } from './api.ts';
 import { Breadcrumbs } from './Breadcrumbs.tsx';
+import { DashboardSkeleton } from './Skeleton.tsx';
 import { formatDay, formatMonth } from './calendar-format.ts';
 import { AvailabilityDonut, BarList, type ChartValue, ColumnChart } from './DashboardCharts.tsx';
 
@@ -59,7 +60,7 @@ export function DashboardPage() {
 function DashboardBody({ state }: { state: DashboardState }) {
   switch (state.status) {
     case 'loading':
-      return <p className="page-status">Loading the dashboard…</p>;
+      return <DashboardSkeleton />;
     case 'failed':
       return (
         <p className="form-error" role="alert">

@@ -16,6 +16,7 @@ import { formatDay, relativeDay } from './calendar-format.ts';
 import { SearchBox } from './SearchBox.tsx';
 import { UnitsProgress } from './UnitsProgress.tsx';
 import { useSearchInput, withFilters } from './url-filters.ts';
+import { RequestListSkeleton } from './Skeleton.tsx';
 
 type ListState =
   | { status: 'loading'; previous: RequestPage | null }
@@ -98,7 +99,7 @@ export function RequestListPage() {
 function RequestResults({ state, onPage }: { state: ListState; onPage: (page: number) => void }) {
   switch (state.status) {
     case 'loading':
-      if (!state.previous) return <p className="page-status">Loading requests…</p>;
+      if (!state.previous) return <RequestListSkeleton />;
       return <RequestList page={state.previous} busy onPage={onPage} />;
     case 'failed':
       return (
