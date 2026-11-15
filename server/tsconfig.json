@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "nodenext",
+    "lib": ["ESNext"],
+    "types": ["node"]
+  },
+  "include": ["./**/*.ts", "../shared/**/*.ts", "../scripts/**/*.ts"]
+}
