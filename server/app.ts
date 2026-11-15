@@ -43,6 +43,9 @@ const handleError: ErrorRequestHandler = (error, _req, res, next) => {
 // Call after mongoose has connected: sessions are stored through its MongoDB client.
 export function createApp(config: Config): express.Express {
   const app = express();
+  // nginx terminates TLS and proxies HTTP to this process. Trust the first
+  // proxy so req.secure is true and express-session sets the Secure cookie.
+  app.set('trust proxy', 1);
   app.use(helmet());
   app.use(express.json({ limit: '10kb' }));
   app.use(
